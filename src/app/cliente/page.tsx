@@ -9,7 +9,10 @@ export default async function ClienteDashboard() {
         data: { user },
     } = await supabase.auth.getUser();
 
-    const { data: profile } = await supabase
+    // Use admin client for profile to bypass RLS
+    const adminClient = await import("@/lib/supabase/admin").then(m => m.createAdminClient());
+
+    const { data: profile } = await adminClient
         .from("profiles")
         .select("name")
         .eq("id", user?.id)
@@ -31,7 +34,7 @@ export default async function ClienteDashboard() {
         .order("created_at", { ascending: false })
         .limit(3);
 
-    const firstName = profile?.name?.split(" ")[0] || "Client";
+    const firstName = profile?.name?.split(" ")[0] || "Cliente";
 
     return (
         <div className="p-4 space-y-6">
@@ -41,10 +44,10 @@ export default async function ClienteDashboard() {
                     className="text-2xl font-bold"
                     style={{ fontFamily: "var(--font-heading)" }}
                 >
-                    Bonjour, {firstName} 👋
+                    Olá, {firstName} 👋
                 </h1>
                 <p style={{ color: "var(--text-muted)" }}>
-                    Bienvenue dans votre espace personnel
+                    Bem-vindo à sua área pessoal
                 </p>
             </div>
 
@@ -53,13 +56,13 @@ export default async function ClienteDashboard() {
                 <Link href="/cliente/atualizacoes">
                     <Card className="text-center py-6 hover:shadow-md transition-shadow">
                         <div className="text-3xl mb-2">📋</div>
-                        <span className="text-sm font-medium">Mes mises à jour</span>
+                        <span className="text-sm font-medium">As minhas atualizações</span>
                     </Card>
                 </Link>
                 <Link href="/cliente/perfil">
                     <Card className="text-center py-6 hover:shadow-md transition-shadow">
                         <div className="text-3xl mb-2">👤</div>
-                        <span className="text-sm font-medium">Mon profil</span>
+                        <span className="text-sm font-medium">O meu perfil</span>
                     </Card>
                 </Link>
             </div>
@@ -71,14 +74,14 @@ export default async function ClienteDashboard() {
                         className="text-lg font-semibold"
                         style={{ fontFamily: "var(--font-heading)" }}
                     >
-                        Dernières mises à jour
+                        Últimas atualizações
                     </h2>
                     <Link
                         href="/cliente/atualizacoes"
                         className="text-sm"
                         style={{ color: "var(--text-muted)" }}
                     >
-                        Voir tout
+                        Ver tudo
                     </Link>
                 </div>
 
@@ -88,7 +91,7 @@ export default async function ClienteDashboard() {
                             <Card key={update.id}>
                                 <h3 className="font-medium">{update.title}</h3>
                                 <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                                    {new Date(update.created_at).toLocaleDateString("fr-FR")}
+                                    {new Date(update.created_at).toLocaleDateString("pt-PT")}
                                 </p>
                             </Card>
                         ))}
@@ -99,7 +102,7 @@ export default async function ClienteDashboard() {
                             className="text-center py-4"
                             style={{ color: "var(--text-muted)" }}
                         >
-                            Aucune mise à jour pour le moment
+                            Sem atualizações de momento
                         </p>
                     </Card>
                 )}
@@ -112,7 +115,7 @@ export default async function ClienteDashboard() {
                         className="text-lg font-semibold"
                         style={{ fontFamily: "var(--font-heading)" }}
                     >
-                        Actualités
+                        Notícias
                     </h2>
                 </div>
 
@@ -122,7 +125,7 @@ export default async function ClienteDashboard() {
                             <Card key={post.id}>
                                 <h3 className="font-medium">{post.title}</h3>
                                 <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                                    {new Date(post.created_at).toLocaleDateString("fr-FR")}
+                                    {new Date(post.created_at).toLocaleDateString("pt-PT")}
                                 </p>
                             </Card>
                         ))}
@@ -133,7 +136,7 @@ export default async function ClienteDashboard() {
                             className="text-center py-4"
                             style={{ color: "var(--text-muted)" }}
                         >
-                            Aucune actualité pour le moment
+                            Sem notícias de momento
                         </p>
                     </Card>
                 )}

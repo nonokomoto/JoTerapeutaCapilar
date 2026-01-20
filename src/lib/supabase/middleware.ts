@@ -1,5 +1,32 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
+
+// Admin client to bypass RLS for role checking
+function createAdminClient() {
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false,
+            },
+        }
+    );
+}
+
+// Helper to get user role from profiles table
+async function getUserRole(userId: string): Promise<"admin" | "client" | null> {
+    const adminClient = createAdminClient();
+    const { data: profile } = await adminClient
+        .from("profiles")
+        .select("role")
+        .eq("id", userId)
+        .single();
+
+    return profile?.role as "admin" | "client" | null;
+}
 
 export async function updateSession(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
@@ -34,24 +61,43 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser();
 
-    // Protected routes - redirect to login if not authenticated
-    const isAuthRoute = request.nextUrl.pathname.startsWith("/login");
-    const isProtectedRoute =
-        request.nextUrl.pathname.startsWith("/admin") ||
-        request.nextUrl.pathname.startsWith("/cliente");
+    const pathname = request.nextUrl.pathname;
+    const isLoginRoute = pathname.startsWith("/login");
+    const isAdminRoute = pathname.startsWith("/admin");
+    const isClienteRoute = pathname.startsWith("/cliente");
+    const isProtectedRoute = isAdminRoute || isClienteRoute;
 
+    // Not authenticated - redirect to login if trying to access protected routes
     if (!user && isProtectedRoute) {
         const url = request.nextUrl.clone();
         url.pathname = "/login";
         return NextResponse.redirect(url);
     }
 
-    // If logged in and trying to access login page, redirect to appropriate dashboard
-    if (user && isAuthRoute) {
-        const url = request.nextUrl.clone();
-        // We'll check role in the dashboard page and redirect accordingly
-        url.pathname = "/";
-        return NextResponse.redirect(url);
+    // Authenticated user - check role and redirect appropriately
+    if (user) {
+        const role = await getUserRole(user.id);
+
+        // If on login page, redirect to appropriate dashboard
+        if (isLoginRoute) {
+            const url = request.nextUrl.clone();
+            url.pathname = role === "admin" ? "/admin" : "/cliente";
+            return NextResponse.redirect(url);
+        }
+
+        // If admin trying to access /cliente routes, redirect to /admin
+        if (role === "admin" && isClienteRoute) {
+            const url = request.nextUrl.clone();
+            url.pathname = "/admin";
+            return NextResponse.redirect(url);
+        }
+
+        // If client trying to access /admin routes, redirect to /cliente
+        if (role === "client" && isAdminRoute) {
+            const url = request.nextUrl.clone();
+            url.pathname = "/cliente";
+            return NextResponse.redirect(url);
+        }
     }
 
     return supabaseResponse;

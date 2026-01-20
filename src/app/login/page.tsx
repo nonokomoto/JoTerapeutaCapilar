@@ -29,27 +29,27 @@ export default function LoginPage() {
                     className="text-2xl font-bold mb-2 text-center"
                     style={{ fontFamily: "var(--font-heading)" }}
                 >
-                    Connexion
+                    Iniciar sessão
                 </h2>
                 <p
                     className="text-sm mb-6 text-center"
                     style={{ color: "var(--text-muted)" }}
                 >
-                    Accédez à votre espace personnel
+                    Aceda à sua área pessoal
                 </p>
 
                 <form action={handleSubmit} className="space-y-4">
                     <Input
-                        label="E-mail"
+                        label="Email"
                         name="email"
                         type="email"
-                        placeholder="votre@email.com"
+                        placeholder="seu@email.com"
                         autoComplete="email"
                         required
                     />
 
                     <Input
-                        label="Mot de passe"
+                        label="Palavra-passe"
                         name="password"
                         type="password"
                         placeholder="••••••••"
@@ -70,7 +70,7 @@ export default function LoginPage() {
                     )}
 
                     <Button type="submit" fullWidth isLoading={isLoading}>
-                        Se connecter
+                        Entrar
                     </Button>
                 </form>
             </Card>
@@ -79,13 +79,13 @@ export default function LoginPage() {
                 className="text-sm text-center mt-6"
                 style={{ color: "var(--text-muted)" }}
             >
-                Mot de passe oublié ?{" "}
+                Esqueceu a palavra-passe?{" "}
                 <a
                     href="mailto:contact@joterapeutacapilar.com"
                     className="font-medium"
                     style={{ color: "var(--text-primary)" }}
                 >
-                    Contactez-nous
+                    Contacte-nos
                 </a>
             </p>
         </AuthLayout>

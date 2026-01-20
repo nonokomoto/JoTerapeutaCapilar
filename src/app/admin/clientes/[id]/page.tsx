@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Card, Avatar } from "@/components/ui";
 import { CreateUpdateForm } from "./CreateUpdateForm";
+import { ResetPasswordButton } from "./ResetPasswordButton";
 
 export default async function ClienteDetalhe({
     params,
@@ -57,8 +58,8 @@ export default async function ClienteDetalhe({
                         {client.name}
                     </h1>
                     <p style={{ color: "var(--text-muted)" }}>
-                        Client depuis{" "}
-                        {new Date(client.created_at).toLocaleDateString("fr-FR", {
+                        Cliente desde{" "}
+                        {new Date(client.created_at).toLocaleDateString("pt-PT", {
                             month: "long",
                             year: "numeric",
                         })}
@@ -99,15 +100,18 @@ export default async function ClienteDetalhe({
                             className="text-sm font-semibold mb-2"
                             style={{ fontFamily: "var(--font-heading)" }}
                         >
-                            Notes privées
+                            Notas privadas
                         </h3>
                         <p
                             className="text-sm whitespace-pre-wrap"
                             style={{ color: "var(--text-muted)" }}
                         >
-                            {client.notes || "Aucune note"}
+                            {client.notes || "Sem notas"}
                         </p>
                     </Card>
+
+                    {/* Reset Password */}
+                    <ResetPasswordButton clientId={client.id} clientEmail={client.email} />
                 </div>
 
                 {/* Updates Section */}
@@ -120,7 +124,7 @@ export default async function ClienteDetalhe({
                         className="text-lg font-semibold"
                         style={{ fontFamily: "var(--font-heading)" }}
                     >
-                        Historique des mises à jour
+                        Histórico de atualizações
                     </h3>
 
                     {updates && updates.length > 0 ? (
@@ -134,7 +138,7 @@ export default async function ClienteDetalhe({
                                             style={{ color: "var(--text-muted)" }}
                                         >
                                             {new Date(update.created_at).toLocaleDateString(
-                                                "fr-FR",
+                                                "pt-PT",
                                                 {
                                                     day: "numeric",
                                                     month: "long",
@@ -157,7 +161,7 @@ export default async function ClienteDetalhe({
                                                     className="text-xs font-medium mb-2"
                                                     style={{ color: "var(--text-muted)" }}
                                                 >
-                                                    Pièces jointes
+                                                    Anexos
                                                 </p>
                                                 <div className="flex flex-wrap gap-2">
                                                     {update.attachments.map((att) => (
@@ -191,7 +195,7 @@ export default async function ClienteDetalhe({
                                 className="text-center py-6"
                                 style={{ color: "var(--text-muted)" }}
                             >
-                                Aucune mise à jour pour ce client
+                                Sem atualizações para este cliente
                             </p>
                         </Card>
                     )}

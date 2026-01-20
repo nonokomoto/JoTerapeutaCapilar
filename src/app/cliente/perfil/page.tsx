@@ -25,10 +25,10 @@ export default async function ClientePerfil() {
                     className="text-2xl font-bold"
                     style={{ fontFamily: "var(--font-heading)" }}
                 >
-                    Mon profil
+                    O meu perfil
                 </h1>
                 <p style={{ color: "var(--text-muted)" }}>
-                    Gérez vos informations
+                    Gerir as suas informações
                 </p>
             </div>
 

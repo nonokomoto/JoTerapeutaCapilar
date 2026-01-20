@@ -17,7 +17,11 @@ export default async function AdminLayoutWrapper({
         redirect("/login");
     }
 
-    const { data: profile } = await supabase
+    // Use admin client to bypass RLS recursion
+    const adminClient = await import("@/lib/supabase/admin").then(m => m.createAdminClient());
+
+    // Check if user is admin
+    const { data: profile } = await adminClient
         .from("profiles")
         .select("*")
         .eq("id", user.id)

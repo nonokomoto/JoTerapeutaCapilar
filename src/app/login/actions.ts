@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+import { createAdminClient } from "@/lib/supabase/admin";
+
 export async function login(formData: FormData) {
     const supabase = await createClient();
 
@@ -11,7 +13,7 @@ export async function login(formData: FormData) {
     const password = formData.get("password") as string;
 
     if (!email || !password) {
-        return { error: "E-mail et mot de passe requis" };
+        return { error: "Email e palavra-passe são obrigatórios" };
     }
 
     const { error } = await supabase.auth.signInWithPassword({
@@ -20,7 +22,7 @@ export async function login(formData: FormData) {
     });
 
     if (error) {
-        return { error: "E-mail ou mot de passe incorrect" };
+        return { error: "Email ou palavra-passe incorretos" };
     }
 
     // Get user profile to determine redirect
@@ -29,19 +31,27 @@ export async function login(formData: FormData) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-        return { error: "Erreur d'authentification" };
+        return { error: "Erro de autenticação" };
     }
 
-    const { data: profile } = await supabase
+    // Use admin client to bypass RLS recursion bug when checking role
+    const adminClient = createAdminClient();
+    const { data: profile, error: profileError } = await adminClient
         .from("profiles")
         .select("role")
         .eq("id", user.id)
         .single();
 
+    if (profileError || !profile) {
+        // Profile not found - sign out and show error
+        await supabase.auth.signOut();
+        return { error: "Perfil não encontrado. Contacte o administrador." };
+    }
+
     revalidatePath("/", "layout");
 
     // Redirect based on role
-    if (profile?.role === "admin") {
+    if (profile.role === "admin") {
         redirect("/admin");
     } else {
         redirect("/cliente");

@@ -35,10 +35,10 @@ export default async function ClienteAtualizacoes() {
                     className="text-2xl font-bold"
                     style={{ fontFamily: "var(--font-heading)" }}
                 >
-                    Mes mises à jour
+                    As minhas atualizações
                 </h1>
                 <p style={{ color: "var(--text-muted)" }}>
-                    Suivez votre progression
+                    Acompanhe a sua evolução
                 </p>
             </div>
 
@@ -53,7 +53,7 @@ export default async function ClienteAtualizacoes() {
                                     style={{ color: "var(--text-muted)" }}
                                 >
                                     {new Date(update.created_at).toLocaleDateString(
-                                        "fr-FR",
+                                        "pt-PT",
                                         {
                                             day: "numeric",
                                             month: "long",
@@ -80,7 +80,7 @@ export default async function ClienteAtualizacoes() {
                                         className="text-xs font-medium mb-2"
                                         style={{ color: "var(--text-muted)" }}
                                     >
-                                        Pièces jointes
+                                        Anexos
                                     </p>
                                     <div className="flex flex-wrap gap-2">
                                         {update.attachments.map((attachment) => (
@@ -110,9 +110,9 @@ export default async function ClienteAtualizacoes() {
                 <Card>
                     <div className="text-center py-8">
                         <div className="text-4xl mb-3">📋</div>
-                        <h3 className="font-medium mb-1">Aucune mise à jour</h3>
+                        <h3 className="font-medium mb-1">Sem atualizações</h3>
                         <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                            Votre thérapeute n&apos;a pas encore ajouté de mises à jour
+                            A sua terapeuta ainda não adicionou atualizações
                         </p>
                     </div>
                 </Card>
