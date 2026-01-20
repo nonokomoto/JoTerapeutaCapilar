@@ -1,9 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { AuthLayout } from "@/components/layouts";
 import { Button, Card, Input } from "@/components/ui";
 import { login } from "./actions";
+
+// Logo icon component
+function LogoIcon() {
+    return (
+        <div
+            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{
+                background: "linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-terracotta) 100%)",
+                boxShadow: "var(--shadow-md)",
+            }}
+        >
+            <span className="text-white text-2xl font-bold" style={{ fontFamily: "var(--font-heading)" }}>
+                Jo
+            </span>
+        </div>
+    );
+}
 
 export default function LoginPage() {
     const [error, setError] = useState<string | null>(null);
@@ -24,18 +42,24 @@ export default function LoginPage() {
 
     return (
         <AuthLayout>
-            <Card elevated>
-                <h2
-                    className="text-2xl font-bold mb-2 text-center"
+            <Card variant="elevated" className="w-full">
+                {/* Logo Icon */}
+                <LogoIcon />
+
+                {/* Brand Title */}
+                <h1
+                    className="text-xl font-bold text-center"
                     style={{ fontFamily: "var(--font-heading)" }}
                 >
-                    Iniciar sessão
-                </h2>
+                    Jo Terapeuta Capilar
+                </h1>
+
+                {/* Subtitle */}
                 <p
-                    className="text-sm mb-6 text-center"
+                    className="text-sm text-center mb-6"
                     style={{ color: "var(--text-muted)" }}
                 >
-                    Aceda à sua área pessoal
+                    Aceda à sua conta
                 </p>
 
                 <form action={handleSubmit} className="space-y-4">
@@ -59,18 +83,19 @@ export default function LoginPage() {
 
                     {error && (
                         <div
-                            className="p-3 text-sm rounded-sm"
+                            className="p-3 text-sm rounded-md"
                             style={{
-                                backgroundColor: "rgba(239, 68, 68, 0.1)",
+                                backgroundColor: "var(--color-error-bg)",
                                 color: "var(--color-error)",
                             }}
+                            role="alert"
                         >
                             {error}
                         </div>
                     )}
 
                     <Button type="submit" fullWidth isLoading={isLoading}>
-                        Entrar
+                        Iniciar sessão
                     </Button>
                 </form>
             </Card>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Card, Button } from "@/components/ui";
+import { Card, Button, Badge } from "@/components/ui";
 import { togglePublishAction } from "./actions";
 
 export default async function AdminPosts() {
@@ -23,14 +23,14 @@ export default async function AdminPosts() {
                         className="text-2xl font-bold"
                         style={{ fontFamily: "var(--font-heading)" }}
                     >
-                        Publications
+                        Publicações
                     </h1>
                     <p style={{ color: "var(--text-muted)" }}>
-                        Gérez vos actualités
+                        Gerir as suas notícias
                     </p>
                 </div>
                 <Link href="/admin/posts/novo">
-                    <Button>+ Nouvelle publication</Button>
+                    <Button>+ Nova publicação</Button>
                 </Link>
             </div>
 
@@ -41,11 +41,11 @@ export default async function AdminPosts() {
                         className="text-lg font-semibold mb-4"
                         style={{ fontFamily: "var(--font-heading)" }}
                     >
-                        Brouillons ({draftPosts.length})
+                        Rascunhos ({draftPosts.length})
                     </h2>
                     <div className="space-y-3">
                         {draftPosts.map((post) => (
-                            <Card key={post.id} className="flex items-start justify-between gap-4">
+                            <Card key={post.id} variant="outlined" className="flex items-start justify-between gap-4">
                                 <div className="flex-1">
                                     <h3 className="font-semibold">{post.title}</h3>
                                     <p
@@ -58,16 +58,16 @@ export default async function AdminPosts() {
                                         className="text-xs mt-2"
                                         style={{ color: "var(--text-light)" }}
                                     >
-                                        Créé le{" "}
-                                        {new Date(post.created_at).toLocaleDateString("fr-FR")}
+                                        Criado a{" "}
+                                        {new Date(post.created_at).toLocaleDateString("pt-PT")}
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
                                     <form action={togglePublishAction}>
                                         <input type="hidden" name="id" value={post.id} />
                                         <input type="hidden" name="published" value="false" />
-                                        <Button type="submit" variant="secondary">
-                                            Publier
+                                        <Button type="submit" variant="secondary" size="sm">
+                                            Publicar
                                         </Button>
                                     </form>
                                 </div>
@@ -83,25 +83,19 @@ export default async function AdminPosts() {
                     className="text-lg font-semibold mb-4"
                     style={{ fontFamily: "var(--font-heading)" }}
                 >
-                    Publiées ({publishedPosts.length})
+                    Publicadas ({publishedPosts.length})
                 </h2>
 
                 {publishedPosts.length > 0 ? (
                     <div className="space-y-3">
                         {publishedPosts.map((post) => (
-                            <Card key={post.id} className="flex items-start justify-between gap-4">
+                            <Card key={post.id} variant="outlined" className="flex items-start justify-between gap-4">
                                 <div className="flex-1">
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 mb-1">
                                         <h3 className="font-semibold">{post.title}</h3>
-                                        <span
-                                            className="text-xs px-2 py-0.5 rounded-full"
-                                            style={{
-                                                backgroundColor: "rgba(34, 197, 94, 0.1)",
-                                                color: "var(--color-success)",
-                                            }}
-                                        >
-                                            Publié
-                                        </span>
+                                        <Badge variant="success" size="sm">
+                                            Publicado
+                                        </Badge>
                                     </div>
                                     <p
                                         className="text-sm line-clamp-2"
@@ -113,15 +107,15 @@ export default async function AdminPosts() {
                                         className="text-xs mt-2"
                                         style={{ color: "var(--text-light)" }}
                                     >
-                                        Publié le{" "}
-                                        {new Date(post.updated_at).toLocaleDateString("fr-FR")}
+                                        Publicado a{" "}
+                                        {new Date(post.updated_at).toLocaleDateString("pt-PT")}
                                     </p>
                                 </div>
                                 <form action={togglePublishAction}>
                                     <input type="hidden" name="id" value={post.id} />
                                     <input type="hidden" name="published" value="true" />
-                                    <Button type="submit" variant="secondary">
-                                        Dépublier
+                                    <Button type="submit" variant="ghost" size="sm">
+                                        Despublicar
                                     </Button>
                                 </form>
                             </Card>
@@ -131,15 +125,15 @@ export default async function AdminPosts() {
                     <Card>
                         <div className="text-center py-8">
                             <div className="text-4xl mb-3">📰</div>
-                            <h3 className="font-medium mb-1">Aucune publication</h3>
+                            <h3 className="font-medium mb-1">Nenhuma publicação</h3>
                             <p
                                 className="text-sm"
                                 style={{ color: "var(--text-muted)" }}
                             >
-                                Créez votre première actualité
+                                Crie a sua primeira notícia
                             </p>
                             <Link href="/admin/posts/novo" className="inline-block mt-4">
-                                <Button>Créer une publication</Button>
+                                <Button>Criar publicação</Button>
                             </Link>
                         </div>
                     </Card>

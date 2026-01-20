@@ -1,18 +1,32 @@
 import { HTMLAttributes, forwardRef } from "react";
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
-    elevated?: boolean;
+    variant?: "elevated" | "outlined" | "ghost" | "default" | "glass";
+    interactive?: boolean;
+    elevated?: boolean; // Legacy support - do not use, use variant="elevated" instead
 }
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
-    ({ children, elevated = false, className = "", ...props }, ref) => {
+    ({ children, variant = "default", interactive = false, elevated, className = "", ...props }, ref) => {
         const baseClass = "card";
-        const elevatedClass = elevated ? "card-elevated" : "";
+
+        // Support legacy elevated prop
+        const effectiveVariant = elevated ? "elevated" : variant;
+
+        const variantClasses = {
+            default: "card-elevated",
+            elevated: "card-elevated",
+            outlined: "card-outlined",
+            ghost: "card-ghost",
+            glass: "backdrop-blur-xl bg-white/70 border border-white/50 shadow-sm",
+        };
+
+        const interactiveClass = interactive ? "card-interactive" : "";
 
         return (
             <div
                 ref={ref}
-                className={`${baseClass} ${elevatedClass} ${className}`}
+                className={`${baseClass} ${variantClasses[effectiveVariant]} ${interactiveClass} ${className}`}
                 {...props}
             >
                 {children}

@@ -31,14 +31,14 @@ export default async function AdminClientes({
                         className="text-2xl font-bold"
                         style={{ fontFamily: "var(--font-heading)" }}
                     >
-                        Clients
+                        Clientes
                     </h1>
                     <p style={{ color: "var(--text-muted)" }}>
-                        Gérez vos clients
+                        Gerir os seus clientes
                     </p>
                 </div>
                 <Link href="/admin/clientes/novo">
-                    <Button>+ Nouveau client</Button>
+                    <Button>+ Novo cliente</Button>
                 </Link>
             </div>
 
@@ -46,7 +46,7 @@ export default async function AdminClientes({
             <form className="max-w-md">
                 <Input
                     name="q"
-                    placeholder="Rechercher un client..."
+                    placeholder="Pesquisar cliente..."
                     defaultValue={q || ""}
                 />
             </form>
@@ -56,7 +56,7 @@ export default async function AdminClientes({
                 <div className="grid gap-4">
                     {clients.map((client) => (
                         <Link key={client.id} href={`/admin/clientes/${client.id}`}>
-                            <Card className="flex items-center gap-4 hover:shadow-md transition-shadow">
+                            <Card variant="outlined" interactive className="flex items-center gap-4">
                                 <Avatar
                                     src={client.avatar_url}
                                     name={client.name}
@@ -83,7 +83,7 @@ export default async function AdminClientes({
                                     className="text-xs"
                                     style={{ color: "var(--text-muted)" }}
                                 >
-                                    {new Date(client.created_at).toLocaleDateString("fr-FR")}
+                                    {new Date(client.created_at).toLocaleDateString("pt-PT")}
                                 </span>
                             </Card>
                         </Link>
@@ -94,16 +94,16 @@ export default async function AdminClientes({
                     <div className="text-center py-8">
                         <div className="text-4xl mb-3">👥</div>
                         <h3 className="font-medium mb-1">
-                            {q ? "Aucun résultat" : "Aucun client"}
+                            {q ? "Sem resultados" : "Sem clientes"}
                         </h3>
                         <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                             {q
-                                ? "Essayez une autre recherche"
-                                : "Commencez par ajouter votre premier client"}
+                                ? "Tente outra pesquisa"
+                                : "Comece por adicionar o seu primeiro cliente"}
                         </p>
                         {!q && (
                             <Link href="/admin/clientes/novo" className="inline-block mt-4">
-                                <Button>Ajouter un client</Button>
+                                <Button>Adicionar cliente</Button>
                             </Link>
                         )}
                     </div>
