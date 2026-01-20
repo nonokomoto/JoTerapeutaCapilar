@@ -14,7 +14,7 @@ export interface StatCardProps extends HTMLAttributes<HTMLDivElement> {
     accentColor?: "rose" | "sage" | "terracotta" | "default";
 }
 
-// These map to CSS custom properties defined in globals.css
+// These map to CSS custom properties defined in src/app/styles.css
 const accentColorVars = {
     default: {
         icon: "var(--color-gray-500)",
@@ -34,17 +34,19 @@ const accentColorVars = {
     },
 };
 
-export function StatCard({
-    label,
-    value,
-    description,
-    trend,
-    icon,
-    accentColor = "default",
-    className = "",
-    style,
-    ...props
-}: StatCardProps) {
+export function StatCard(allProps: StatCardProps) {
+    const {
+        label,
+        value,
+        description,
+        trend,
+        icon,
+        accentColor = "default",
+        className = "",
+        style,
+        ...props
+    } = allProps;
+
     const colors = accentColorVars[accentColor];
 
     return (

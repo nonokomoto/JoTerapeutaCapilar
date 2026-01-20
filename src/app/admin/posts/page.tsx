@@ -1,7 +1,46 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Card, Button, Badge } from "@/components/ui";
-import { togglePublishAction } from "./actions";
+import { Button } from "@/components/ui";
+
+// Icons
+function ImagePlaceholderIcon() {
+    return (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+        </svg>
+    );
+}
+
+function ChevronRightIcon() {
+    return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="9 18 15 12 9 6" />
+        </svg>
+    );
+}
+
+function PlusIcon() {
+    return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+    );
+}
+
+function EmptyPostsIcon() {
+    return (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="10 9 9 9 8 9" />
+        </svg>
+    );
+}
 
 export default async function AdminPosts() {
     const supabase = await createClient();
@@ -11,134 +50,88 @@ export default async function AdminPosts() {
         .select("*")
         .order("created_at", { ascending: false });
 
-    const publishedPosts = posts?.filter((p) => p.published) || [];
-    const draftPosts = posts?.filter((p) => !p.published) || [];
-
     return (
-        <div className="space-y-6">
+        <div>
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="posts-header">
                 <div>
-                    <h1
-                        className="text-2xl font-bold"
-                        style={{ fontFamily: "var(--font-heading)" }}
-                    >
-                        Publicações
-                    </h1>
-                    <p style={{ color: "var(--text-muted)" }}>
-                        Gerir as suas notícias
+                    <h1 className="posts-header-title">Publicações</h1>
+                    <p className="posts-header-subtitle">
+                        Gerir conteúdos visíveis para todos os clientes
                     </p>
                 </div>
                 <Link href="/admin/posts/novo">
-                    <Button>+ Nova publicação</Button>
+                    <Button>
+                        <PlusIcon />
+                        Novo Post
+                    </Button>
                 </Link>
             </div>
 
-            {/* Drafts */}
-            {draftPosts.length > 0 && (
-                <section>
-                    <h2
-                        className="text-lg font-semibold mb-4"
-                        style={{ fontFamily: "var(--font-heading)" }}
-                    >
-                        Rascunhos ({draftPosts.length})
-                    </h2>
-                    <div className="space-y-3">
-                        {draftPosts.map((post) => (
-                            <Card key={post.id} variant="outlined" className="flex items-start justify-between gap-4">
-                                <div className="flex-1">
-                                    <h3 className="font-semibold">{post.title}</h3>
-                                    <p
-                                        className="text-sm line-clamp-2"
-                                        style={{ color: "var(--text-muted)" }}
+            {/* Posts List */}
+            {posts && posts.length > 0 ? (
+                <div className="posts-list">
+                    {posts.map((post) => (
+                        <Link
+                            key={post.id}
+                            href={`/admin/posts/${post.id}`}
+                            className="post-card"
+                        >
+                            {/* Image */}
+                            <div className="post-card-image">
+                                {post.image_url ? (
+                                    <img src={post.image_url} alt={post.title} />
+                                ) : (
+                                    <ImagePlaceholderIcon />
+                                )}
+                            </div>
+
+                            {/* Content */}
+                            <div className="post-card-content">
+                                <h3 className="post-card-title">{post.title}</h3>
+                                <p className="post-card-excerpt">{post.content}</p>
+                                <div className="post-card-meta">
+                                    <span
+                                        className={`post-card-badge ${post.published ? "published" : "draft"}`}
                                     >
-                                        {post.content}
-                                    </p>
-                                    <p
-                                        className="text-xs mt-2"
-                                        style={{ color: "var(--text-light)" }}
-                                    >
-                                        Criado a{" "}
-                                        {new Date(post.created_at).toLocaleDateString("pt-PT")}
-                                    </p>
+                                        {post.published ? "Publicado" : "Rascunho"}
+                                    </span>
+                                    <span className="post-card-date">
+                                        {new Date(
+                                            post.published ? post.updated_at : post.created_at
+                                        ).toLocaleDateString("pt-PT", {
+                                            day: "numeric",
+                                            month: "short",
+                                            year: "numeric",
+                                        })}
+                                    </span>
                                 </div>
-                                <div className="flex gap-2">
-                                    <form action={togglePublishAction}>
-                                        <input type="hidden" name="id" value={post.id} />
-                                        <input type="hidden" name="published" value="false" />
-                                        <Button type="submit" variant="secondary" size="sm">
-                                            Publicar
-                                        </Button>
-                                    </form>
-                                </div>
-                            </Card>
-                        ))}
+                            </div>
+
+                            {/* Arrow indicator */}
+                            <div className="post-card-arrow">
+                                <ChevronRightIcon />
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            ) : (
+                <div className="posts-empty">
+                    <div className="posts-empty-icon">
+                        <EmptyPostsIcon />
                     </div>
-                </section>
+                    <h3 className="posts-empty-title">Nenhuma publicação</h3>
+                    <p className="posts-empty-text">
+                        Crie o seu primeiro conteúdo para os clientes
+                    </p>
+                    <Link href="/admin/posts/novo">
+                        <Button>
+                            <PlusIcon />
+                            Criar publicação
+                        </Button>
+                    </Link>
+                </div>
             )}
-
-            {/* Published */}
-            <section>
-                <h2
-                    className="text-lg font-semibold mb-4"
-                    style={{ fontFamily: "var(--font-heading)" }}
-                >
-                    Publicadas ({publishedPosts.length})
-                </h2>
-
-                {publishedPosts.length > 0 ? (
-                    <div className="space-y-3">
-                        {publishedPosts.map((post) => (
-                            <Card key={post.id} variant="outlined" className="flex items-start justify-between gap-4">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <h3 className="font-semibold">{post.title}</h3>
-                                        <Badge variant="success" size="sm">
-                                            Publicado
-                                        </Badge>
-                                    </div>
-                                    <p
-                                        className="text-sm line-clamp-2"
-                                        style={{ color: "var(--text-muted)" }}
-                                    >
-                                        {post.content}
-                                    </p>
-                                    <p
-                                        className="text-xs mt-2"
-                                        style={{ color: "var(--text-light)" }}
-                                    >
-                                        Publicado a{" "}
-                                        {new Date(post.updated_at).toLocaleDateString("pt-PT")}
-                                    </p>
-                                </div>
-                                <form action={togglePublishAction}>
-                                    <input type="hidden" name="id" value={post.id} />
-                                    <input type="hidden" name="published" value="true" />
-                                    <Button type="submit" variant="ghost" size="sm">
-                                        Despublicar
-                                    </Button>
-                                </form>
-                            </Card>
-                        ))}
-                    </div>
-                ) : (
-                    <Card>
-                        <div className="text-center py-8">
-                            <div className="text-4xl mb-3">📰</div>
-                            <h3 className="font-medium mb-1">Nenhuma publicação</h3>
-                            <p
-                                className="text-sm"
-                                style={{ color: "var(--text-muted)" }}
-                            >
-                                Crie a sua primeira notícia
-                            </p>
-                            <Link href="/admin/posts/novo" className="inline-block mt-4">
-                                <Button>Criar publicação</Button>
-                            </Link>
-                        </div>
-                    </Card>
-                )}
-            </section>
         </div>
     );
 }

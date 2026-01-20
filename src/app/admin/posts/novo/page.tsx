@@ -2,16 +2,27 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button, Card, Input } from "@/components/ui";
+import { useRouter } from "next/navigation";
+import { Button, Input } from "@/components/ui";
+import { ImagePicker } from "@/components/ImagePicker";
 import { createPostAction } from "../actions";
+import { ArrowLeft, Save, Send } from "lucide-react";
 
 export default function NovoPost() {
+    const router = useRouter();
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-    async function handleSubmit(formData: FormData) {
+    async function handleSubmit(formData: FormData, publish: boolean) {
         setIsLoading(true);
         setError(null);
+
+        // Add image URL and publish status
+        if (imageUrl) {
+            formData.set("image_url", imageUrl);
+        }
+        formData.set("published", publish.toString());
 
         const result = await createPostAction(formData);
 
@@ -23,53 +34,53 @@ export default function NovoPost() {
     }
 
     return (
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="post-form-container">
             {/* Header */}
-            <div className="flex items-center gap-4">
-                <Link
-                    href="/admin/posts"
-                    className="p-2 rounded-sm"
-                    style={{ backgroundColor: "var(--bg-input)" }}
-                >
-                    ←
+            <div className="post-form-header">
+                <Link href="/admin/posts" className="post-form-back">
+                    <ArrowLeft size={20} />
                 </Link>
                 <div>
-                    <h1
-                        className="text-2xl font-bold"
-                        style={{ fontFamily: "var(--font-heading)" }}
-                    >
-                        Nouvelle publication
-                    </h1>
-                    <p style={{ color: "var(--text-muted)" }}>
-                        Créez une actualité pour vos clients
+                    <h1 className="post-form-title">Nova Publicação</h1>
+                    <p className="post-form-subtitle">
+                        Crie conteúdo para partilhar com os seus clientes
                     </p>
                 </div>
             </div>
 
             {/* Form */}
-            <Card>
-                <form action={handleSubmit} className="space-y-4">
-                    <Input
-                        label="Titre *"
-                        name="title"
-                        placeholder="Ex: Conseils pour l'été"
-                        required
-                    />
+            <div className="post-form-card">
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.currentTarget);
+                        const submitType = (e.nativeEvent as SubmitEvent).submitter?.getAttribute("data-action");
+                        handleSubmit(formData, submitType === "publish");
+                    }}
+                    className="post-form-fields"
+                >
+                    {/* Image Picker */}
+                    <ImagePicker value={imageUrl} onChange={setImageUrl} />
 
-                    <div className="flex flex-col gap-1">
-                        <label
-                            htmlFor="content"
-                            className="text-sm font-medium"
-                            style={{ fontFamily: "var(--font-sans)" }}
-                        >
-                            Contenu *
-                        </label>
+                    {/* Title */}
+                    <div className="post-form-field">
+                        <Input
+                            label="Título"
+                            name="title"
+                            placeholder="Ex: Dicas de cuidado diário"
+                            required
+                        />
+                    </div>
+
+                    {/* Content */}
+                    <div className="post-form-field">
+                        <label htmlFor="content">Conteúdo</label>
                         <textarea
                             id="content"
                             name="content"
                             rows={8}
                             className="input"
-                            placeholder="Rédigez votre article..."
+                            placeholder="Escreva o conteúdo da publicação..."
                             required
                             style={{
                                 resize: "vertical",
@@ -78,64 +89,40 @@ export default function NovoPost() {
                         />
                     </div>
 
+                    {/* Error */}
                     {error && (
-                        <div
-                            className="p-3 text-sm rounded-sm"
-                            style={{
-                                backgroundColor: "rgba(239, 68, 68, 0.1)",
-                                color: "var(--color-error)",
-                            }}
-                        >
+                        <div className="image-picker-error">
                             {error}
                         </div>
                     )}
 
-                    <div className="flex flex-col md:flex-row gap-4 pt-4">
-                        <Link href="/admin/posts" className="flex-1">
-                            <Button variant="secondary" fullWidth type="button">
-                                Annuler
+                    {/* Actions */}
+                    <div className="post-form-actions">
+                        <Link href="/admin/posts">
+                            <Button variant="ghost" type="button">
+                                Cancelar
                             </Button>
                         </Link>
                         <Button
                             type="submit"
                             variant="secondary"
-                            fullWidth
                             isLoading={isLoading}
-                            className="flex-1"
-                            onClick={(e) => {
-                                const form = e.currentTarget.closest("form");
-                                if (form) {
-                                    const hiddenInput = document.createElement("input");
-                                    hiddenInput.type = "hidden";
-                                    hiddenInput.name = "published";
-                                    hiddenInput.value = "false";
-                                    form.appendChild(hiddenInput);
-                                }
-                            }}
+                            data-action="draft"
                         >
-                            Enregistrer brouillon
+                            <Save size={16} />
+                            Guardar Rascunho
                         </Button>
                         <Button
                             type="submit"
-                            fullWidth
                             isLoading={isLoading}
-                            className="flex-1"
-                            onClick={(e) => {
-                                const form = e.currentTarget.closest("form");
-                                if (form) {
-                                    const hiddenInput = document.createElement("input");
-                                    hiddenInput.type = "hidden";
-                                    hiddenInput.name = "published";
-                                    hiddenInput.value = "true";
-                                    form.appendChild(hiddenInput);
-                                }
-                            }}
+                            data-action="publish"
                         >
-                            Publier
+                            <Send size={16} />
+                            Publicar
                         </Button>
                     </div>
                 </form>
-            </Card>
+            </div>
         </div>
     );
 }

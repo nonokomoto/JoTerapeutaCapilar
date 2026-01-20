@@ -43,103 +43,76 @@ export function ResetPasswordButton({ clientId, clientEmail }: Props) {
     // Show password modal
     if (password) {
         return (
-            <Card>
+            <Card variant="outlined">
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <h3
-                            className="text-sm font-semibold"
-                            style={{ fontFamily: "var(--font-heading)" }}
-                        >
+                        <h3 className="text-sm font-semibold">
                             Nova palavra-passe gerada
                         </h3>
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={handleClose}
-                            className="text-sm px-2 py-1 rounded-sm"
-                            style={{ backgroundColor: "var(--bg-input)" }}
                         >
                             Fechar
-                        </button>
+                        </Button>
                     </div>
 
-                    <div
-                        className="p-3 rounded-sm"
-                        style={{ backgroundColor: "var(--bg-secondary)" }}
-                    >
+                    <div className="ds-panel">
                         <div className="flex justify-between items-center mb-1">
-                            <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                            <span className="text-xs ds-text-muted">
                                 Email
                             </span>
-                            <button
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => copyToClipboard(clientEmail, "email")}
-                                className="text-xs px-2 py-0.5 rounded-sm transition-colors"
-                                style={{
-                                    backgroundColor: copied === "email" ? "var(--color-nude)" : "var(--bg-input)"
-                                }}
                             >
                                 {copied === "email" ? "Copiado!" : "Copiar"}
-                            </button>
+                            </Button>
                         </div>
                         <p className="font-mono text-sm">{clientEmail}</p>
                     </div>
 
-                    <div
-                        className="p-3 rounded-sm"
-                        style={{ backgroundColor: "var(--bg-secondary)" }}
-                    >
+                    <div className="ds-panel">
                         <div className="flex justify-between items-center mb-1">
-                            <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                            <span className="text-xs ds-text-muted">
                                 Palavra-passe
                             </span>
-                            <button
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => copyToClipboard(password, "password")}
-                                className="text-xs px-2 py-0.5 rounded-sm transition-colors"
-                                style={{
-                                    backgroundColor: copied === "password" ? "var(--color-nude)" : "var(--bg-input)"
-                                }}
                             >
                                 {copied === "password" ? "Copiado!" : "Copiar"}
-                            </button>
+                            </Button>
                         </div>
                         <p className="font-mono text-sm">{password}</p>
                     </div>
 
-                    <button
+                    <Button
+                        variant="secondary"
+                        fullWidth
                         onClick={() => copyToClipboard(`Email: ${clientEmail}\nPalavra-passe: ${password}`, "all")}
-                        className="w-full p-2 rounded-sm text-sm font-medium transition-colors"
-                        style={{
-                            backgroundColor: copied === "all" ? "var(--color-nude)" : "var(--bg-input)"
-                        }}
                     >
                         {copied === "all" ? "Copiado!" : "Copiar tudo"}
-                    </button>
+                    </Button>
                 </div>
             </Card>
         );
     }
 
     return (
-        <Card>
-            <h3
-                className="text-sm font-semibold mb-2"
-                style={{ fontFamily: "var(--font-heading)" }}
-            >
+        <Card variant="outlined">
+            <h3 className="text-sm font-semibold mb-2">
                 Dados de acesso
             </h3>
-            <p
-                className="text-sm mb-3"
-                style={{ color: "var(--text-muted)" }}
-            >
+            <p className="text-sm ds-text-muted mb-3">
                 Gere uma nova palavra-passe para o cliente.
             </p>
 
             {error && (
-                <div
-                    className="p-2 text-sm rounded-sm mb-3"
-                    style={{
-                        backgroundColor: "rgba(239, 68, 68, 0.1)",
-                        color: "var(--color-error)",
-                    }}
-                >
+                <div className="ds-alert-error text-sm mb-3">
                     {error}
                 </div>
             )}

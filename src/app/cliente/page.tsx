@@ -82,7 +82,7 @@ export default async function ClienteDashboard() {
 
     const firstName = profile?.name?.split(" ")[0] || "Cliente";
     const greeting = getGreeting();
-    const initials = profile?.name?.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() || "CL";
+    const initials = profile?.name?.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "CL";
 
     return (
         <div className="cliente-dashboard">

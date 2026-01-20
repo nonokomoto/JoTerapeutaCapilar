@@ -1,6 +1,12 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
-import { Card, Button, Avatar, Input } from "@/components/ui";
+import { Button } from "@/components/ui";
+import { Plus } from "lucide-react";
+import { ClientsTable } from "./ClientsTable";
+import { SearchInput } from "./SearchInput";
+
+const PAGE_SIZE = 20;
 
 export default async function AdminClientes({
     searchParams,
@@ -10,105 +16,69 @@ export default async function AdminClientes({
     const supabase = await createClient();
     const { q } = await searchParams;
 
+    // Query first page of clients
     let query = supabase
         .from("profiles")
         .select("*")
         .eq("role", "client")
-        .order("name", { ascending: true });
+        .order("name", { ascending: true })
+        .range(0, PAGE_SIZE - 1);
 
     if (q) {
-        query = query.or(`name.ilike.%${q}%,email.ilike.%${q}%`);
+        query = query.or(`name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`);
     }
 
     const { data: clients } = await query;
 
+    // Get update counts for initial clients
+    let updateCounts: Record<string, number> = {};
+    if (clients && clients.length > 0) {
+        const clientIds = clients.map(c => c.id);
+        const { data: counts } = await supabase
+            .from("client_updates")
+            .select("client_id")
+            .in("client_id", clientIds);
+        
+        if (counts) {
+            counts.forEach(update => {
+                updateCounts[update.client_id] = (updateCounts[update.client_id] || 0) + 1;
+            });
+        }
+    }
+
+    const clientsWithCounts = (clients || []).map(client => ({
+        ...client,
+        updateCount: updateCounts[client.id] || 0,
+    }));
+
+    const hasMore = (clients?.length || 0) === PAGE_SIZE;
+
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                    <h1
-                        className="text-2xl font-bold"
-                        style={{ fontFamily: "var(--font-heading)" }}
-                    >
-                        Clientes
-                    </h1>
-                    <p style={{ color: "var(--text-muted)" }}>
-                        Gerir os seus clientes
-                    </p>
-                </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <h1 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-heading)" }}>
+                    Clientes
+                </h1>
                 <Link href="/admin/clientes/novo">
-                    <Button>+ Novo cliente</Button>
+                    <Button className="gap-2">
+                        <Plus size={16} />
+                        Novo Cliente
+                    </Button>
                 </Link>
             </div>
 
             {/* Search */}
-            <form className="max-w-md">
-                <Input
-                    name="q"
-                    placeholder="Pesquisar cliente..."
-                    defaultValue={q || ""}
-                />
-            </form>
+            <Suspense fallback={<div className="h-[42px] max-w-sm bg-gray-100 rounded-lg animate-pulse" />}>
+                <SearchInput />
+            </Suspense>
 
-            {/* Clients List */}
-            {clients && clients.length > 0 ? (
-                <div className="grid gap-4">
-                    {clients.map((client) => (
-                        <Link key={client.id} href={`/admin/clientes/${client.id}`}>
-                            <Card variant="outlined" interactive className="flex items-center gap-4">
-                                <Avatar
-                                    src={client.avatar_url}
-                                    name={client.name}
-                                    size="lg"
-                                />
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold">{client.name}</h3>
-                                    <p
-                                        className="text-sm truncate"
-                                        style={{ color: "var(--text-muted)" }}
-                                    >
-                                        {client.email}
-                                    </p>
-                                    {client.phone && (
-                                        <p
-                                            className="text-sm"
-                                            style={{ color: "var(--text-muted)" }}
-                                        >
-                                            {client.phone}
-                                        </p>
-                                    )}
-                                </div>
-                                <span
-                                    className="text-xs"
-                                    style={{ color: "var(--text-muted)" }}
-                                >
-                                    {new Date(client.created_at).toLocaleDateString("pt-PT")}
-                                </span>
-                            </Card>
-                        </Link>
-                    ))}
-                </div>
-            ) : (
-                <Card>
-                    <div className="text-center py-8">
-                        <div className="text-4xl mb-3">👥</div>
-                        <h3 className="font-medium mb-1">
-                            {q ? "Sem resultados" : "Sem clientes"}
-                        </h3>
-                        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                            {q
-                                ? "Tente outra pesquisa"
-                                : "Comece por adicionar o seu primeiro cliente"}
-                        </p>
-                        {!q && (
-                            <Link href="/admin/clientes/novo" className="inline-block mt-4">
-                                <Button>Adicionar cliente</Button>
-                            </Link>
-                        )}
-                    </div>
-                </Card>
-            )}
+            {/* Clients Table with Infinite Scroll */}
+            <ClientsTable 
+                initialClients={clientsWithCounts}
+                initialHasMore={hasMore}
+                searchQuery={q}
+            />
         </div>
     );
 }

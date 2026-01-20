@@ -127,7 +127,7 @@ export default async function AdminDashboard() {
     });
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div className="admin-container">
             {/* Welcome Banner */}
             <div className="welcome-banner">
                 <div>
@@ -146,7 +146,7 @@ export default async function AdminDashboard() {
             </div>
 
             {/* Stats Section - Clean cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+            <div className="admin-stats-grid">
                 <StatCard
                     label="Total Clientes"
                     value={clientsCount || 0}
@@ -168,28 +168,16 @@ export default async function AdminDashboard() {
             </div>
 
             {/* Content Grid - Two columns on large screens */}
-            <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(1, 1fr)', 
-                gap: '1.5rem'
-            }} className="lg:!grid-cols-[1.5fr_1fr]">
+            <div className="admin-content-grid lg:!grid-cols-[1.5fr_1fr]">
                 {/* Recent Clients Section */}
-                <section style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h2 style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <section className="admin-section">
+                    <div className="admin-section-header-row">
+                        <h2 className="section-header">
                             Clientes Recentes
                         </h2>
-                        <Link 
-                            href="/admin/clientes" 
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.25rem',
-                                fontSize: '0.8125rem',
-                                fontWeight: 500,
-                                color: '#1E3A5F',
-                                transition: 'color 0.2s'
-                            }}
+                        <Link
+                            href="/admin/clientes"
+                            className="admin-view-all"
                         >
                             Ver todos
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -198,13 +186,7 @@ export default async function AdminDashboard() {
                         </Link>
                     </div>
 
-                    <div style={{
-                        background: '#FFFFFF',
-                        borderRadius: '12px',
-                        overflow: 'hidden',
-                        border: '1px solid #E5E7EB',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-                    }}>
+                    <div className="admin-card-container">
                         {recentClients && recentClients.length > 0 ? (
                             <div>
                                 {recentClients.map((client, index) => {
@@ -213,27 +195,19 @@ export default async function AdminDashboard() {
                                         <Link
                                             key={client.id}
                                             href={`/admin/clientes/${client.id}`}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'space-between',
-                                                padding: '0.875rem 1.25rem',
-                                                borderBottom: index < recentClients.length - 1 ? '1px solid #F3F4F6' : 'none',
-                                                transition: 'background 0.15s'
-                                            }}
-                                            className="hover:bg-gray-50"
+                                            className="admin-client-item hover:bg-gray-50"
                                         >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+                                            <div className="admin-client-info">
                                                 <Avatar
                                                     src={client.avatar_url}
                                                     name={client.name}
                                                     size="md"
                                                 />
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                                                    <span style={{ fontWeight: 500, color: '#111827', fontSize: '0.9375rem' }}>
+                                                <div className="admin-client-text-stack">
+                                                    <span className="admin-client-name">
                                                         {client.name}
                                                     </span>
-                                                    <span style={{ fontSize: '0.8125rem', color: '#9CA3AF' }}>
+                                                    <span className="admin-client-date">
                                                         {lastUpdate
                                                             ? `Última atualização: ${new Date(lastUpdate).toLocaleDateString("pt-PT", {
                                                                 day: "numeric",
@@ -252,61 +226,23 @@ export default async function AdminDashboard() {
                                 })}
                             </div>
                         ) : (
-                            <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '3rem 2rem',
-                                textAlign: 'center'
-                            }}>
-                                <div style={{
-                                    width: '56px',
-                                    height: '56px',
-                                    background: '#F3F4F6',
-                                    borderRadius: '12px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#9CA3AF',
-                                    marginBottom: '1rem'
-                                }}>
+                            <div className="admin-empty-state">
+                                <div className="admin-empty-icon-box">
                                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                                         <circle cx="9" cy="7" r="4" />
                                         <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
                                     </svg>
                                 </div>
-                                <h3 style={{ 
-                                    fontSize: '0.9375rem', 
-                                    fontWeight: 600, 
-                                    color: '#111827',
-                                    marginBottom: '0.25rem'
-                                }}>
+                                <h3 className="admin-empty-title">
                                     Ainda sem clientes
                                 </h3>
-                                <p style={{ 
-                                    fontSize: '0.8125rem', 
-                                    color: '#9CA3AF', 
-                                    marginBottom: '1rem'
-                                }}>
+                                <p className="admin-empty-desc">
                                     Adicione o seu primeiro cliente
                                 </p>
-                                <Link 
-                                    href="/admin/clientes/novo" 
-                                    style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '0.5rem',
-                                        fontSize: '0.8125rem',
-                                        fontWeight: 500,
-                                        color: 'white',
-                                        padding: '0.625rem 1rem',
-                                        background: '#C9A080',
-                                        borderRadius: '8px',
-                                        transition: 'all 0.2s'
-                                    }}
-                                    className="hover:bg-[#B8926E]"
+                                <Link
+                                    href="/admin/clientes/novo"
+                                    className="admin-btn-inline-add"
                                 >
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <line x1="12" y1="5" x2="12" y2="19" />
@@ -320,40 +256,21 @@ export default async function AdminDashboard() {
                 </section>
 
                 {/* Quick Actions Section */}
-                <section style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <h2 style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <section className="admin-section">
+                    <h2 className="section-header">
                         Ações Rápidas
                     </h2>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <Link 
-                            href="/admin/clientes/novo" 
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.75rem',
-                                padding: '0.875rem 1rem',
-                                background: '#FFFFFF',
-                                borderRadius: '12px',
-                                border: '1px solid #F3F4F6',
-                                transition: 'all 0.15s'
-                            }}
-                            className="hover:bg-gray-50"
+                    <div className="admin-quick-actions-list">
+                        <Link
+                            href="/admin/clientes/novo"
+                            className="admin-quick-action-item hover:bg-gray-50"
                         >
-                            <div style={{
-                                width: '36px',
-                                height: '36px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background: '#F3F4F6',
-                                color: '#C9A080',
-                                borderRadius: '8px',
-                            }}>
+                            <div className="admin-quick-action-icon-box text-rose-gold">
                                 <AddUserIcon />
                             </div>
-                            <div style={{ flex: 1 }}>
-                                <span style={{ display: 'block', fontWeight: 500, color: '#111827', fontSize: '0.875rem' }}>
+                            <div className="admin-quick-action-info">
+                                <span className="admin-quick-action-label">
                                     Novo Cliente
                                 </span>
                             </div>
@@ -362,34 +279,15 @@ export default async function AdminDashboard() {
                             </svg>
                         </Link>
 
-                        <Link 
-                            href="/admin/posts/novo" 
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.75rem',
-                                padding: '0.875rem 1rem',
-                                background: '#FFFFFF',
-                                borderRadius: '12px',
-                                border: '1px solid #F3F4F6',
-                                transition: 'all 0.15s'
-                            }}
-                            className="hover:bg-gray-50"
+                        <Link
+                            href="/admin/posts/novo"
+                            className="admin-quick-action-item hover:bg-gray-50"
                         >
-                            <div style={{
-                                width: '36px',
-                                height: '36px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background: '#F3F4F6',
-                                color: '#8FA68F',
-                                borderRadius: '8px',
-                            }}>
+                            <div className="admin-quick-action-icon-box text-sage">
                                 <AddPostIcon />
                             </div>
-                            <div style={{ flex: 1 }}>
-                                <span style={{ display: 'block', fontWeight: 500, color: '#111827', fontSize: '0.875rem' }}>
+                            <div className="admin-quick-action-info">
+                                <span className="admin-quick-action-label">
                                     Criar Post
                                 </span>
                             </div>
@@ -398,34 +296,15 @@ export default async function AdminDashboard() {
                             </svg>
                         </Link>
 
-                        <Link 
-                            href="/admin/clientes" 
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.75rem',
-                                padding: '0.875rem 1rem',
-                                background: '#FFFFFF',
-                                borderRadius: '12px',
-                                border: '1px solid #F3F4F6',
-                                transition: 'all 0.15s'
-                            }}
-                            className="hover:bg-gray-50"
+                        <Link
+                            href="/admin/clientes"
+                            className="admin-quick-action-item hover:bg-gray-50"
                         >
-                            <div style={{
-                                width: '36px',
-                                height: '36px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background: '#F3F4F6',
-                                color: '#C17B5D',
-                                borderRadius: '8px',
-                            }}>
+                            <div className="admin-quick-action-icon-box text-terracotta">
                                 <UsersIcon />
                             </div>
-                            <div style={{ flex: 1 }}>
-                                <span style={{ display: 'block', fontWeight: 500, color: '#111827', fontSize: '0.875rem' }}>
+                            <div className="admin-quick-action-info">
+                                <span className="admin-quick-action-label">
                                     Ver Clientes
                                 </span>
                             </div>

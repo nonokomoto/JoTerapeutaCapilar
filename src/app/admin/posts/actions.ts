@@ -9,6 +9,7 @@ export async function createPostAction(formData: FormData) {
 
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
+    const image_url = formData.get("image_url") as string | null;
     const published = formData.get("published") === "true";
 
     const {
@@ -16,18 +17,19 @@ export async function createPostAction(formData: FormData) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-        return { error: "Non autorisé" };
+        return { error: "Não autorizado" };
     }
 
     const { error } = await supabase.from("posts").insert({
         admin_id: user.id,
         title,
         content,
+        image_url: image_url || null,
         published,
     });
 
     if (error) {
-        return { error: "Erreur lors de la création" };
+        return { error: "Erro ao criar publicação" };
     }
 
     revalidatePath("/admin/posts");
@@ -40,6 +42,7 @@ export async function updatePostAction(formData: FormData) {
     const id = formData.get("id") as string;
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
+    const image_url = formData.get("image_url") as string | null;
     const published = formData.get("published") === "true";
 
     const { error } = await supabase
@@ -47,12 +50,13 @@ export async function updatePostAction(formData: FormData) {
         .update({
             title,
             content,
+            image_url: image_url || null,
             published,
         })
         .eq("id", id);
 
     if (error) {
-        return { error: "Erreur lors de la mise à jour" };
+        return { error: "Erro ao atualizar publicação" };
     }
 
     revalidatePath("/admin/posts");
@@ -67,7 +71,7 @@ export async function deletePostAction(formData: FormData) {
     const { error } = await supabase.from("posts").delete().eq("id", id);
 
     if (error) {
-        return { error: "Erreur lors de la suppression" };
+        return { error: "Erro ao eliminar publicação" };
     }
 
     revalidatePath("/admin/posts");

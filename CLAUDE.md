@@ -75,10 +75,35 @@ Profile auto-creation trigger fires on user signup.
 - "Terminar sessão" not "Sair"
 
 ### Design System
-- **Colors**: White (#FFFFFF), Black (#000000), Nude (#E5D3C6), Off-white (#FAFAFA)
+- **Colors**: Defined as CSS variables in `src/app/styles.css`
 - **Typography**: Manrope (headings), Poppins (body)
-- **Buttons**: border-radius 0px (square edges)
 - **Touch targets**: Minimum 44x44px
+
+### Design System Rules (CRITICAL)
+**Tailwind = layout only; `styles.css` + UI components = appearance.**
+
+#### What to use:
+- **Layout**: Tailwind (`flex`, `grid`, `gap-*`, `space-y-*`, `lg:*`, etc.)
+- **Appearance**: DS classes from `styles.css` or UI components
+
+#### NEVER use Tailwind color classes:
+- ❌ `text-gray-*`, `bg-red-*`, `border-blue-*`
+- ✅ DS semantic classes instead
+
+#### DS semantic classes:
+- **Text**: `ds-text-primary`, `ds-text-secondary`, `ds-text-muted`, `ds-text-light`, `ds-text-brand`, `ds-text-taupe`
+- **Borders**: `ds-border-default`, `ds-border-subtle`
+- **Backgrounds**: `ds-bg-secondary`, `ds-bg-muted`
+- **Panels**: `ds-panel`, `ds-note-panel`
+- **Alerts**: `ds-alert-error`
+
+#### Avoid inline styles:
+- ❌ `style={{ color: "..." }}`
+- ✅ `className="ds-text-secondary"`
+
+#### Always use UI components:
+- `Button`, `Card`, `Input`, `Badge`, `Avatar`, `StatCard` from `@/components/ui`
+- Use variants (`variant="primary"`, `size="sm"`) instead of custom className
 
 ### Product Rules
 - Admin creates client accounts (no self-registration)
