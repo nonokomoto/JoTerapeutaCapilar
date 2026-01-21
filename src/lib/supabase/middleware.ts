@@ -18,14 +18,24 @@ function createAdminClient() {
 
 // Helper to get user role from profiles table
 async function getUserRole(userId: string): Promise<"admin" | "client" | null> {
-    const adminClient = createAdminClient();
-    const { data: profile } = await adminClient
-        .from("profiles")
-        .select("role")
-        .eq("id", userId)
-        .single();
+    try {
+        const adminClient = createAdminClient();
+        const { data: profile, error } = await adminClient
+            .from("profiles")
+            .select("role")
+            .eq("id", userId)
+            .single();
 
-    return profile?.role as "admin" | "client" | null;
+        if (error) {
+            console.error("Error fetching user role:", error);
+            return null;
+        }
+
+        return profile?.role as "admin" | "client" | null;
+    } catch (e) {
+        console.error("Exception in getUserRole:", e);
+        return null;
+    }
 }
 
 export async function updateSession(request: NextRequest) {
@@ -77,6 +87,11 @@ export async function updateSession(request: NextRequest) {
     // Authenticated user - check role and redirect appropriately
     if (user) {
         const role = await getUserRole(user.id);
+
+        // If role fetch failed, allow request to continue (page will handle auth)
+        if (!role) {
+            return supabaseResponse;
+        }
 
         // If on login page, redirect to appropriate dashboard
         if (isLoginRoute) {
