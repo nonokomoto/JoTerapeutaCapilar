@@ -507,13 +507,144 @@ a:focus-visible {
 }
 
 /* --- Spinner --- */
+/* ===========================================
+   LOADING COMPONENTS
+   =========================================== */
+
 .spinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--color-sand);
-  border-top-color: var(--color-taupe);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.7s linear infinite;
+}
+
+.border-rose-gold\/30 {
+  border-color: rgba(201, 160, 128, 0.3);
+}
+
+.border-t-rose-gold {
+  border-top-color: var(--color-rose-gold);
+}
+
+/* Page Loader - Full screen overlay */
+.page-loader {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.page-loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.page-loader-text {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Loading Dots */
+.loading-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.loading-dots .dot {
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  border-radius: 50%;
+  animation: loadingDot 1.4s ease-in-out infinite both;
+}
+
+.loading-dots .dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-dots .dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes loadingDot {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Section Loader - For content areas */
+.section-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-10) var(--spacing-4);
+  gap: var(--spacing-3);
+}
+
+.section-loader-text {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* Admin Loading */
+.admin-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: var(--spacing-4);
+}
+
+/* Skeleton placeholders */
+.skeleton-text {
+  background: linear-gradient(90deg, var(--color-gray-100) 25%, var(--color-gray-50) 50%, var(--color-gray-100) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Login Loading */
+.login-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+}
+
+/* Button Loading State */
+.btn-loading {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.btn-loading-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
 }
 
 @keyframes spin {

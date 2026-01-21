@@ -11,7 +11,8 @@ export type { CardProps } from "./Card";
 export { Input } from "./Input";
 export type { InputProps } from "./Input";
 
-export { Spinner } from "./Spinner";
+export { Spinner, PageLoader, LoadingDots } from "./Spinner";
+export type { SpinnerProps, PageLoaderProps, LoadingDotsProps } from "./Spinner";
 
 // New Components
 export { Badge } from "./Badge";

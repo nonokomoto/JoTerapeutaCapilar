@@ -43,3 +43,7 @@ next-env.d.ts
 
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
+
+# Client documentation (private)
+docs/PROPOSTA_JOANA.md
+docs/REUNIAO_CLIENTE.md

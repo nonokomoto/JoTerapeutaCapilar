@@ -27,10 +27,12 @@ export default function LoginPage() {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    async function handleSubmit(formData: FormData) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
         setIsLoading(true);
         setError(null);
 
+        const formData = new FormData(e.currentTarget);
         const result = await login(formData);
 
         if (result?.error) {
@@ -62,7 +64,7 @@ export default function LoginPage() {
                     Aceda à sua conta
                 </p>
 
-                <form action={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
                         label="Email"
                         name="email"
