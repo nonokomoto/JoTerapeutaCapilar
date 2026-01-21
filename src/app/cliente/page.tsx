@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Card } from "@/components/ui";
+import { TreatmentsSection, NewsSection } from "@/components/cliente/DashboardContent";
 
 // Get time-based greeting
 function getGreeting() {
@@ -17,23 +16,6 @@ function UpdatesIcon() {
             <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
             <rect x="9" y="3" width="6" height="4" rx="1" />
             <path d="M9 14l2 2 4-4" />
-        </svg>
-    );
-}
-
-function ProfileIcon() {
-    return (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <circle cx="12" cy="8" r="4" />
-            <path d="M20 21a8 8 0 00-16 0" />
-        </svg>
-    );
-}
-
-function ChevronRightIcon() {
-    return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 18l6-6-6-6" />
         </svg>
     );
 }
@@ -64,7 +46,7 @@ export default async function ClienteDashboard() {
         .eq("id", user?.id)
         .single();
 
-    // Get recent updates
+    // Get initial updates for SSR
     const { data: recentUpdates, count: updatesCount } = await supabase
         .from("client_updates")
         .select("id, title, created_at", { count: "exact" })
@@ -72,7 +54,7 @@ export default async function ClienteDashboard() {
         .order("created_at", { ascending: false })
         .limit(3);
 
-    // Get recent posts
+    // Get initial posts for SSR
     const { data: recentPosts } = await supabase
         .from("posts")
         .select("id, title, created_at, content, image_url")
@@ -119,99 +101,14 @@ export default async function ClienteDashboard() {
             </div>
 
             <div className="cliente-dashboard-content">
-                {/* Treatments Section */}
-                <section className="mb-10">
-                    <div className="cliente-feed-header">
-                        <h2 className="cliente-section-label">Os meus tratamentos</h2>
-                        <Link href="/cliente/atualizacoes" className="text-sm font-medium text-rose-gold hover:opacity-80 transition-opacity">
-                            Ver histórico
-                        </Link>
-                    </div>
+                {/* Treatments Section - Now reactive with TanStack Query */}
+                <TreatmentsSection
+                    initialUpdates={recentUpdates || []}
+                    initialCount={updatesCount || 0}
+                />
 
-                    {recentUpdates && recentUpdates.length > 0 ? (
-                        <div className="cliente-treatments-grid">
-                            {recentUpdates.map((update, index) => (
-                                <Link
-                                    href="/cliente/atualizacoes"
-                                    key={update.id}
-                                    className="cliente-feed-card"
-                                    style={{ animationDelay: `${index * 100}ms` }}
-                                >
-                                    <div className="cliente-feed-icon">
-                                        <UpdatesIcon />
-                                    </div>
-                                    <div className="cliente-feed-info">
-                                        <h3 className="cliente-feed-title">{update.title}</h3>
-                                        <p className="cliente-feed-date">
-                                            {new Date(update.created_at).toLocaleDateString("pt-PT", {
-                                                day: "numeric",
-                                                month: "long"
-                                            })}
-                                        </p>
-                                    </div>
-                                    <div className="cliente-feed-arrow">
-                                        <ChevronRightIcon />
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="cliente-empty-state">
-                            <div className="cliente-empty-icon">
-                                <UpdatesIcon />
-                            </div>
-                            <p className="cliente-empty-text">Ainda não tem tratamentos registados</p>
-                        </div>
-                    )}
-                </section>
-
-                {/* News & Tips Section - Full Width Grid */}
-                <section>
-                    <div className="cliente-feed-header">
-                        <h2 className="cliente-section-label">Novidades e Dicas</h2>
-                        <Link href="/cliente/conteudos" className="text-sm font-medium text-rose-gold hover:opacity-80 transition-opacity">
-                            Ver todos
-                        </Link>
-                    </div>
-
-                    {recentPosts && recentPosts.length > 0 ? (
-                        <div className="cliente-news-grid">
-                            {recentPosts.map((post, index) => (
-                                <Link
-                                    href={`/cliente/conteudos/${post.id}`}
-                                    key={post.id}
-                                    className="cliente-post-card cliente-post-card-link"
-                                    style={{ animationDelay: `${(index + 3) * 100}ms` }}
-                                >
-                                    {post.image_url && (
-                                        <div className="cliente-post-image">
-                                            <img src={post.image_url} alt={post.title} />
-                                        </div>
-                                    )}
-                                    <div className="cliente-post-content">
-                                        <div className="cliente-post-badge">Novo</div>
-                                        <h3 className="cliente-post-title">{post.title}</h3>
-                                        {post.content && (
-                                            <p className="cliente-post-excerpt">
-                                                {post.content.substring(0, 80)}...
-                                            </p>
-                                        )}
-                                        <p className="cliente-post-date">
-                                            {new Date(post.created_at).toLocaleDateString("pt-PT", {
-                                                day: "numeric",
-                                                month: "short"
-                                            })}
-                                        </p>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="cliente-empty-state">
-                            <p className="cliente-empty-text">Fique atenta às novidades!</p>
-                        </div>
-                    )}
-                </section>
+                {/* News & Tips Section - Now reactive with TanStack Query */}
+                <NewsSection initialPosts={recentPosts || []} />
             </div>
         </div>
     );

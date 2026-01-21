@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope, Poppins } from "next/font/google";
+import { Providers } from "./providers";
 import "./styles.css";
 
 const manrope = Manrope({
@@ -17,9 +18,9 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Jo Terapeuta Capilar | Espace Client",
+  title: "Jo Terapeuta Capilar | Espaço Cliente",
   description:
-    "Plateforme de suivi personnalisé pour les clients de Jo Terapeuta Capilar",
+    "Plataforma de acompanhamento personalizado para clientes de Jo Terapeuta Capilar",
 };
 
 export default function RootLayout({
@@ -28,9 +29,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
+    <html lang="pt">
       <body className={`${manrope.variable} ${poppins.variable}`} suppressHydrationWarning>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

@@ -1,35 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Card, Button, StatCard, Avatar } from "@/components/ui";
+import { AdminStats, RecentClientsList } from "@/components/admin/DashboardContent";
 
-// Icons for stats
-function UsersIcon() {
-    return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-    );
-}
-
-function TreatmentIcon() {
-    return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-        </svg>
-    );
-}
-
-function PostsIcon() {
-    return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-        </svg>
-    );
-}
-
+// Icons for quick actions
 function AddUserIcon() {
     return (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -52,12 +25,14 @@ function AddPostIcon() {
     );
 }
 
-// Get current time greeting
-function getGreeting() {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Bom dia";
-    if (hour < 18) return "Boa tarde";
-    return "Boa noite";
+function UsersIcon() {
+    return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+    );
 }
 
 // Calendar icon for date display
@@ -70,6 +45,14 @@ function CalendarIcon() {
             <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
     );
+}
+
+// Get current time greeting
+function getGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Bom dia";
+    if (hour < 18) return "Boa tarde";
+    return "Boa noite";
 }
 
 export default async function AdminDashboard() {
@@ -87,22 +70,20 @@ export default async function AdminDashboard() {
     const firstName = profile?.name?.split(" ")[0] || "Jo";
     const greeting = getGreeting();
 
-    // Get stats
-    const { count: clientsCount } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("role", "client");
+    // Get initial stats for SSR (hydration)
+    const [clientsResult, updatesResult, postsResult] = await Promise.all([
+        adminClient.from("profiles").select("*", { count: "exact", head: true }).eq("role", "client"),
+        adminClient.from("client_updates").select("*", { count: "exact", head: true }),
+        adminClient.from("posts").select("*", { count: "exact", head: true }).eq("published", true),
+    ]);
 
-    const { count: updatesCount } = await supabase
-        .from("client_updates")
-        .select("*", { count: "exact", head: true });
+    const initialStats = {
+        clientsCount: clientsResult.count || 0,
+        postsCount: postsResult.count || 0,
+        updatesCount: updatesResult.count || 0,
+    };
 
-    const { count: postsCount } = await supabase
-        .from("posts")
-        .select("*", { count: "exact", head: true })
-        .eq("published", true);
-
-    // Get recent clients with last update (using adminClient to bypass RLS)
+    // Get initial recent clients for SSR
     const { data: recentClients } = await adminClient
         .from("profiles")
         .select(`
@@ -117,6 +98,13 @@ export default async function AdminDashboard() {
         .eq("role", "client")
         .order("created_at", { ascending: false })
         .limit(5);
+
+    const initialClients = recentClients?.map((client) => ({
+        id: client.id,
+        name: client.name,
+        avatar_url: client.avatar_url,
+        lastUpdate: client.client_updates?.[0]?.created_at || null,
+    })) || [];
 
     // Format today's date
     const today = new Date().toLocaleDateString("pt-PT", {
@@ -145,31 +133,12 @@ export default async function AdminDashboard() {
                 </div>
             </div>
 
-            {/* Stats Section - Clean cards */}
-            <div className="admin-stats-grid">
-                <StatCard
-                    label="Total Clientes"
-                    value={clientsCount || 0}
-                    icon={<UsersIcon />}
-                    accentColor="rose"
-                />
-                <StatCard
-                    label="Em tratamento"
-                    value={clientsCount || 0}
-                    icon={<TreatmentIcon />}
-                    accentColor="sage"
-                />
-                <StatCard
-                    label="Posts publicados"
-                    value={postsCount || 0}
-                    icon={<PostsIcon />}
-                    accentColor="terracotta"
-                />
-            </div>
+            {/* Stats Section - Now reactive with TanStack Query */}
+            <AdminStats initialStats={initialStats} />
 
             {/* Content Grid - Two columns on large screens */}
             <div className="admin-content-grid lg:!grid-cols-[1.5fr_1fr]">
-                {/* Recent Clients Section */}
+                {/* Recent Clients Section - Now reactive */}
                 <section className="admin-section">
                     <div className="admin-section-header-row">
                         <h2 className="section-header">
@@ -187,71 +156,7 @@ export default async function AdminDashboard() {
                     </div>
 
                     <div className="admin-card-container">
-                        {recentClients && recentClients.length > 0 ? (
-                            <div>
-                                {recentClients.map((client, index) => {
-                                    const lastUpdate = client.client_updates?.[0]?.created_at;
-                                    return (
-                                        <Link
-                                            key={client.id}
-                                            href={`/admin/clientes/${client.id}`}
-                                            className="admin-client-item hover:bg-gray-50"
-                                        >
-                                            <div className="admin-client-info">
-                                                <Avatar
-                                                    src={client.avatar_url}
-                                                    name={client.name}
-                                                    size="md"
-                                                />
-                                                <div className="admin-client-text-stack">
-                                                    <span className="admin-client-name">
-                                                        {client.name}
-                                                    </span>
-                                                    <span className="admin-client-date">
-                                                        {lastUpdate
-                                                            ? `Última atualização: ${new Date(lastUpdate).toLocaleDateString("pt-PT", {
-                                                                day: "numeric",
-                                                                month: "short"
-                                                            })}`
-                                                            : "Sem atualizações"
-                                                        }
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B8ABA0" strokeWidth="2">
-                                                <path d="M9 18l6-6-6-6" />
-                                            </svg>
-                                        </Link>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <div className="admin-empty-state">
-                                <div className="admin-empty-icon-box">
-                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                        <circle cx="9" cy="7" r="4" />
-                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                                    </svg>
-                                </div>
-                                <h3 className="admin-empty-title">
-                                    Ainda sem clientes
-                                </h3>
-                                <p className="admin-empty-desc">
-                                    Adicione o seu primeiro cliente
-                                </p>
-                                <Link
-                                    href="/admin/clientes/novo"
-                                    className="admin-btn-inline-add"
-                                >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <line x1="12" y1="5" x2="12" y2="19" />
-                                        <line x1="5" y1="12" x2="19" y2="12" />
-                                    </svg>
-                                    Adicionar
-                                </Link>
-                            </div>
-                        )}
+                        <RecentClientsList initialClients={initialClients} />
                     </div>
                 </section>
 
