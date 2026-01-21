@@ -1,5 +1,34 @@
 import { createClient } from "@/lib/supabase/server";
-import { Card } from "@/components/ui";
+
+// Icons
+function ClipboardIcon() {
+    return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+            <rect x="9" y="3" width="6" height="4" rx="1" />
+            <path d="M9 14l2 2 4-4" />
+        </svg>
+    );
+}
+
+function ImageIcon() {
+    return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+        </svg>
+    );
+}
+
+function FileIcon() {
+    return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+        </svg>
+    );
+}
 
 export default async function ClienteAtualizacoes() {
     const supabase = await createClient();
@@ -8,7 +37,6 @@ export default async function ClienteAtualizacoes() {
         data: { user },
     } = await supabase.auth.getUser();
 
-    // Get all updates with attachments
     const { data: updates } = await supabase
         .from("client_updates")
         .select(
@@ -29,93 +57,75 @@ export default async function ClienteAtualizacoes() {
         .order("created_at", { ascending: false });
 
     return (
-        <div className="p-4">
-            <div className="mb-6">
-                <h1
-                    className="text-2xl font-bold"
-                    style={{ fontFamily: "var(--font-heading)" }}
-                >
-                    As minhas atualizações
-                </h1>
-                <p style={{ color: "var(--text-muted)" }}>
-                    Acompanhe a sua evolução
-                </p>
+        <div className="cliente-dashboard-content cliente-page-container">
+            {/* Page Header */}
+            <div className="cliente-page-header">
+                <h1 className="cliente-page-title">As minhas atualizações</h1>
+                <p className="cliente-page-subtitle">Acompanhe a sua evolução capilar</p>
             </div>
 
+            {/* Updates List */}
             {updates && updates.length > 0 ? (
-                <div className="space-y-4">
-                    {updates.map((update) => (
-                        <Card key={update.id}>
-                            <div className="flex items-start justify-between mb-2">
-                                <h3 className="font-semibold">{update.title}</h3>
-                                <span
-                                    className="text-xs"
-                                    style={{ color: "var(--text-muted)" }}
-                                >
-                                    {new Date(update.created_at).toLocaleDateString(
-                                        "pt-PT",
-                                        {
+                <div className="cliente-updates-list">
+                    {updates.map((update, index) => (
+                        <article
+                            key={update.id}
+                            className="cliente-update-card"
+                            style={{ animationDelay: `${index * 80}ms` }}
+                        >
+                            <div className="cliente-update-header">
+                                <div className="cliente-update-icon">
+                                    <ClipboardIcon />
+                                </div>
+                                <div className="cliente-update-meta">
+                                    <h3 className="cliente-update-title">{update.title}</h3>
+                                    <p className="cliente-update-date">
+                                        {new Date(update.created_at).toLocaleDateString("pt-PT", {
                                             day: "numeric",
                                             month: "long",
                                             year: "numeric",
-                                        }
-                                    )}
-                                </span>
+                                        })}
+                                    </p>
+                                </div>
                             </div>
 
-                            <p
-                                className="text-sm mb-4"
-                                style={{
-                                    color: "var(--text-primary)",
-                                    whiteSpace: "pre-wrap",
-                                }}
-                            >
+                            <div className="cliente-update-content">
                                 {update.content}
-                            </p>
+                            </div>
 
                             {/* Attachments */}
                             {update.attachments && update.attachments.length > 0 && (
-                                <div className="border-t pt-4 mt-4">
-                                    <p
-                                        className="text-xs font-medium mb-2"
-                                        style={{ color: "var(--text-muted)" }}
-                                    >
-                                        Anexos
-                                    </p>
-                                    <div className="flex flex-wrap gap-2">
+                                <div className="cliente-update-attachments">
+                                    <p className="cliente-attachments-label">Anexos</p>
+                                    <div className="cliente-attachments-grid">
                                         {update.attachments.map((attachment) => (
                                             <a
                                                 key={attachment.id}
                                                 href={attachment.file_url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex items-center gap-2 px-3 py-2 text-sm rounded-sm"
-                                                style={{
-                                                    backgroundColor: "var(--bg-input)",
-                                                }}
+                                                className="cliente-attachment-link"
                                             >
-                                                {attachment.file_type === "image" ? "🖼️" : "📄"}
-                                                <span className="truncate max-w-[120px]">
-                                                    {attachment.file_name}
-                                                </span>
+                                                {attachment.file_type === "image" ? <ImageIcon /> : <FileIcon />}
+                                                <span className="truncate">{attachment.file_name}</span>
                                             </a>
                                         ))}
                                     </div>
                                 </div>
                             )}
-                        </Card>
+                        </article>
                     ))}
                 </div>
             ) : (
-                <Card>
-                    <div className="text-center py-8">
-                        <div className="text-4xl mb-3">📋</div>
-                        <h3 className="font-medium mb-1">Sem atualizações</h3>
-                        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                            A sua terapeuta ainda não adicionou atualizações
-                        </p>
+                <div className="cliente-empty-state">
+                    <div className="cliente-empty-icon">
+                        <ClipboardIcon />
                     </div>
-                </Card>
+                    <h3 className="cliente-empty-title">Sem atualizações</h3>
+                    <p className="cliente-empty-text">
+                        A sua terapeuta ainda não adicionou atualizações ao seu perfil
+                    </p>
+                </div>
             )}
         </div>
     );

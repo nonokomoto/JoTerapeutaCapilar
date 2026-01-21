@@ -19,20 +19,15 @@ export default async function ClientePerfil() {
     }
 
     return (
-        <div className="p-4">
-            <div className="mb-6">
-                <h1
-                    className="text-2xl font-bold"
-                    style={{ fontFamily: "var(--font-heading)" }}
-                >
-                    O meu perfil
-                </h1>
-                <p style={{ color: "var(--text-muted)" }}>
-                    Gerir as suas informações
-                </p>
+        <div className="cliente-dashboard-content cliente-page-container">
+            <div className="cliente-page-header">
+                <h1 className="cliente-page-title">O meu perfil</h1>
+                <p className="cliente-page-subtitle">Gerir as suas informações</p>
             </div>
 
-            <ProfileForm profile={profile} />
+            <div className="cliente-profile-layout">
+                <ProfileForm profile={profile} />
+            </div>
         </div>
     );
 }

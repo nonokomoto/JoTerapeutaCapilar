@@ -75,149 +75,144 @@ export default async function ClienteDashboard() {
     // Get recent posts
     const { data: recentPosts } = await supabase
         .from("posts")
-        .select("id, title, created_at, excerpt")
+        .select("id, title, created_at, content, image_url")
         .eq("published", true)
         .order("created_at", { ascending: false })
-        .limit(3);
+        .limit(6);
 
     const firstName = profile?.name?.split(" ")[0] || "Cliente";
     const greeting = getGreeting();
     const initials = profile?.name?.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "CL";
 
     return (
-        <div className="cliente-dashboard">
-            {/* Hero Section */}
-            <div className="cliente-hero">
-                <div className="cliente-hero-content">
-                    <div className="cliente-avatar-section">
+        <div className="cliente-dash-container">
+            {/* Hero Section v2 - Desktop Optimized */}
+            <div className="cliente-hero-glass cliente-hero-glass-desktop">
+                <div className="cliente-glass-card">
+                    <div className="relative flex-shrink-0">
                         {profile?.avatar_url ? (
-                            <img 
-                                src={profile.avatar_url} 
-                                alt={profile.name} 
-                                className="cliente-avatar-img"
+                            <img
+                                src={profile.avatar_url}
+                                alt={profile.name}
+                                className="cliente-avatar-premium"
                             />
                         ) : (
-                            <div className="cliente-avatar-placeholder">
+                            <div className="cliente-avatar-premium cliente-avatar-initials">
                                 {initials}
                             </div>
                         )}
-                        <div className="cliente-avatar-badge">
+                        <div className="absolute bottom-1 right-0 w-6 h-6 bg-white rounded-full flex items-center justify-center text-rose-gold shadow-sm border-2 border-primary lg:bottom-0">
                             <SparklesIcon />
                         </div>
                     </div>
-                    <div className="cliente-welcome">
-                        <p className="cliente-greeting">{greeting},</p>
-                        <h1 className="cliente-name">{firstName}!</h1>
-                        <p className="cliente-subtitle">Bem-vinda à sua área pessoal</p>
+
+                    <div className="flex flex-col">
+                        <p className="cliente-hero-greeting">{greeting},</p>
+                        <h1 className="cliente-hero-name">{firstName}!</h1>
+
+                        <div className="cliente-status-pill self-center lg:self-start">
+                            <UpdatesIcon />
+                            <span>A sua saúde capilar em dia</span>
+                        </div>
                     </div>
                 </div>
-                <div className="cliente-hero-decoration" />
             </div>
 
-            {/* Quick Actions */}
-            <section className="cliente-section">
-                <h2 className="cliente-section-title">Acesso Rápido</h2>
-                <div className="cliente-quick-actions">
-                    <Link href="/cliente/atualizacoes" className="cliente-action-card cliente-action-primary">
-                        <div className="cliente-action-icon">
-                            <UpdatesIcon />
-                        </div>
-                        <div className="cliente-action-content">
-                            <span className="cliente-action-title">As minhas atualizações</span>
-                            <span className="cliente-action-count">{updatesCount || 0} registos</span>
-                        </div>
-                        <ChevronRightIcon />
-                    </Link>
-                    <Link href="/cliente/perfil" className="cliente-action-card cliente-action-secondary">
-                        <div className="cliente-action-icon">
-                            <ProfileIcon />
-                        </div>
-                        <div className="cliente-action-content">
-                            <span className="cliente-action-title">O meu perfil</span>
-                            <span className="cliente-action-count">Dados pessoais</span>
-                        </div>
-                        <ChevronRightIcon />
-                    </Link>
-                </div>
-            </section>
+            <div className="cliente-dashboard-content">
+                {/* Treatments Section */}
+                <section className="mb-10">
+                    <div className="cliente-feed-header">
+                        <h2 className="cliente-section-label">Os meus tratamentos</h2>
+                        <Link href="/cliente/atualizacoes" className="text-sm font-medium text-rose-gold hover:opacity-80 transition-opacity">
+                            Ver histórico
+                        </Link>
+                    </div>
 
-            {/* Recent Updates */}
-            <section className="cliente-section">
-                <div className="cliente-section-header">
-                    <h2 className="cliente-section-title">Últimas Atualizações</h2>
-                    <Link href="/cliente/atualizacoes" className="cliente-section-link">
-                        Ver tudo
-                    </Link>
-                </div>
-
-                {recentUpdates && recentUpdates.length > 0 ? (
-                    <div className="cliente-updates-list">
-                        {recentUpdates.map((update, index) => (
-                            <div 
-                                key={update.id} 
-                                className="cliente-update-card"
-                                style={{ animationDelay: `${index * 100}ms` }}
-                            >
-                                <div className="cliente-update-dot" />
-                                <div className="cliente-update-content">
-                                    <h3 className="cliente-update-title">{update.title}</h3>
-                                    <p className="cliente-update-date">
-                                        {new Date(update.created_at).toLocaleDateString("pt-PT", {
-                                            day: "numeric",
-                                            month: "long",
-                                            year: "numeric"
-                                        })}
-                                    </p>
-                                </div>
+                    {recentUpdates && recentUpdates.length > 0 ? (
+                        <div className="cliente-treatments-grid">
+                            {recentUpdates.map((update, index) => (
+                                <Link
+                                    href="/cliente/atualizacoes"
+                                    key={update.id}
+                                    className="cliente-feed-card"
+                                    style={{ animationDelay: `${index * 100}ms` }}
+                                >
+                                    <div className="cliente-feed-icon">
+                                        <UpdatesIcon />
+                                    </div>
+                                    <div className="cliente-feed-info">
+                                        <h3 className="cliente-feed-title">{update.title}</h3>
+                                        <p className="cliente-feed-date">
+                                            {new Date(update.created_at).toLocaleDateString("pt-PT", {
+                                                day: "numeric",
+                                                month: "long"
+                                            })}
+                                        </p>
+                                    </div>
+                                    <div className="cliente-feed-arrow">
+                                        <ChevronRightIcon />
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="cliente-empty-state">
+                            <div className="cliente-empty-icon">
+                                <UpdatesIcon />
                             </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="cliente-empty-state">
-                        <div className="cliente-empty-icon">
-                            <UpdatesIcon />
+                            <p className="cliente-empty-text">Ainda não tem tratamentos registados</p>
                         </div>
-                        <p className="cliente-empty-text">Ainda não tem atualizações</p>
-                        <p className="cliente-empty-subtext">As suas atualizações de tratamento aparecerão aqui</p>
-                    </div>
-                )}
-            </section>
+                    )}
+                </section>
 
-            {/* News Section */}
-            <section className="cliente-section">
-                <div className="cliente-section-header">
-                    <h2 className="cliente-section-title">Novidades & Dicas</h2>
-                </div>
+                {/* News & Tips Section - Full Width Grid */}
+                <section>
+                    <div className="cliente-feed-header">
+                        <h2 className="cliente-section-label">Novidades e Dicas</h2>
+                        <Link href="/cliente/conteudos" className="text-sm font-medium text-rose-gold hover:opacity-80 transition-opacity">
+                            Ver todos
+                        </Link>
+                    </div>
 
-                {recentPosts && recentPosts.length > 0 ? (
-                    <div className="cliente-posts-grid">
-                        {recentPosts.map((post, index) => (
-                            <div 
-                                key={post.id} 
-                                className="cliente-post-card"
-                                style={{ animationDelay: `${index * 100}ms` }}
-                            >
-                                <div className="cliente-post-badge">Novo</div>
-                                <h3 className="cliente-post-title">{post.title}</h3>
-                                {post.excerpt && (
-                                    <p className="cliente-post-excerpt">{post.excerpt}</p>
-                                )}
-                                <p className="cliente-post-date">
-                                    {new Date(post.created_at).toLocaleDateString("pt-PT", {
-                                        day: "numeric",
-                                        month: "short"
-                                    })}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="cliente-empty-state">
-                        <p className="cliente-empty-text">Sem novidades de momento</p>
-                        <p className="cliente-empty-subtext">Fique atenta às próximas dicas!</p>
-                    </div>
-                )}
-            </section>
+                    {recentPosts && recentPosts.length > 0 ? (
+                        <div className="cliente-news-grid">
+                            {recentPosts.map((post, index) => (
+                                <Link
+                                    href={`/cliente/conteudos/${post.id}`}
+                                    key={post.id}
+                                    className="cliente-post-card cliente-post-card-link"
+                                    style={{ animationDelay: `${(index + 3) * 100}ms` }}
+                                >
+                                    {post.image_url && (
+                                        <div className="cliente-post-image">
+                                            <img src={post.image_url} alt={post.title} />
+                                        </div>
+                                    )}
+                                    <div className="cliente-post-content">
+                                        <div className="cliente-post-badge">Novo</div>
+                                        <h3 className="cliente-post-title">{post.title}</h3>
+                                        {post.content && (
+                                            <p className="cliente-post-excerpt">
+                                                {post.content.substring(0, 80)}...
+                                            </p>
+                                        )}
+                                        <p className="cliente-post-date">
+                                            {new Date(post.created_at).toLocaleDateString("pt-PT", {
+                                                day: "numeric",
+                                                month: "short"
+                                            })}
+                                        </p>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="cliente-empty-state">
+                            <p className="cliente-empty-text">Fique atenta às novidades!</p>
+                        </div>
+                    )}
+                </section>
+            </div>
         </div>
     );
 }

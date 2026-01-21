@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Avatar, Button, Card, Input } from "@/components/ui";
+import { Button, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types/database";
 
@@ -19,6 +19,8 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     const [error, setError] = useState<string | null>(null);
     const [passwordError, setPasswordError] = useState<string | null>(null);
     const [showPasswordForm, setShowPasswordForm] = useState(false);
+
+    const initials = profile.name?.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "CL";
 
     async function handleSubmit(formData: FormData) {
         setIsLoading(true);
@@ -70,7 +72,6 @@ export function ProfileForm({ profile }: ProfileFormProps) {
 
         const supabase = createClient();
 
-        // Verify current password by re-authenticating
         const { error: signInError } = await supabase.auth.signInWithPassword({
             email: profile.email,
             password: currentPassword,
@@ -82,7 +83,6 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             return;
         }
 
-        // Update password
         const { error: updateError } = await supabase.auth.updateUser({
             password: newPassword,
         });
@@ -104,31 +104,30 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             {/* Avatar Section */}
-            <Card className="flex flex-col items-center py-8">
-                <Avatar src={profile.avatar_url} name={profile.name} size="xl" />
-                <h2
-                    className="text-xl font-semibold mt-4"
-                    style={{ fontFamily: "var(--font-heading)" }}
-                >
-                    {profile.name}
-                </h2>
-                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                    {profile.email}
-                </p>
-            </Card>
+            <div className="cliente-profile-card cliente-profile-avatar-section">
+                {profile.avatar_url ? (
+                    <img
+                        src={profile.avatar_url}
+                        alt={profile.name}
+                        className="cliente-profile-avatar"
+                        style={{ objectFit: "cover" }}
+                    />
+                ) : (
+                    <div className="cliente-profile-avatar">
+                        {initials}
+                    </div>
+                )}
+                <h2 className="cliente-profile-name">{profile.name}</h2>
+                <p className="cliente-profile-email">{profile.email}</p>
+            </div>
 
             {/* Profile Form */}
-            <Card>
-                <h3
-                    className="text-lg font-semibold mb-4"
-                    style={{ fontFamily: "var(--font-heading)" }}
-                >
-                    Informações pessoais
-                </h3>
+            <div className="cliente-profile-card">
+                <h3 className="cliente-profile-section-title">Informações pessoais</h3>
 
-                <form action={handleSubmit} className="space-y-4">
+                <form action={handleSubmit} className="cliente-profile-form">
                     <Input
                         label="Nome completo"
                         name="name"
@@ -153,22 +152,16 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                     />
 
                     {error && (
-                        <div
-                            className="p-3 text-sm rounded-sm"
-                            style={{
-                                backgroundColor: "rgba(239, 68, 68, 0.1)",
-                                color: "var(--color-error)",
-                            }}
-                        >
+                        <div className="ds-alert-error">
                             {error}
                         </div>
                     )}
 
                     {success && (
                         <div
-                            className="p-3 text-sm rounded-sm"
+                            className="p-3 text-sm rounded-md"
                             style={{
-                                backgroundColor: "rgba(34, 197, 94, 0.1)",
+                                backgroundColor: "var(--color-success-bg)",
                                 color: "var(--color-success)",
                             }}
                         >
@@ -180,22 +173,22 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                         Guardar
                     </Button>
                 </form>
-            </Card>
+            </div>
 
             {/* Password Change */}
-            <Card>
+            <div className="cliente-profile-card">
                 <div className="flex items-center justify-between mb-4">
-                    <h3
-                        className="text-lg font-semibold"
-                        style={{ fontFamily: "var(--font-heading)" }}
-                    >
+                    <h3 className="cliente-profile-section-title" style={{ marginBottom: 0 }}>
                         Palavra-passe
                     </h3>
                     {!showPasswordForm && (
                         <button
                             onClick={() => setShowPasswordForm(true)}
-                            className="text-sm px-3 py-1 rounded-sm"
-                            style={{ backgroundColor: "var(--bg-input)" }}
+                            className="text-sm px-3 py-1.5 rounded-md font-medium transition-colors"
+                            style={{
+                                backgroundColor: "var(--color-gray-100)",
+                                color: "var(--text-secondary)"
+                            }}
                         >
                             Alterar
                         </button>
@@ -204,9 +197,9 @@ export function ProfileForm({ profile }: ProfileFormProps) {
 
                 {passwordSuccess && !showPasswordForm && (
                     <div
-                        className="p-3 text-sm rounded-sm"
+                        className="p-3 text-sm rounded-md"
                         style={{
-                            backgroundColor: "rgba(34, 197, 94, 0.1)",
+                            backgroundColor: "var(--color-success-bg)",
                             color: "var(--color-success)",
                         }}
                     >
@@ -215,7 +208,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                 )}
 
                 {showPasswordForm ? (
-                    <form onSubmit={handlePasswordChange} className="space-y-4">
+                    <form onSubmit={handlePasswordChange} className="cliente-profile-form">
                         <Input
                             label="Palavra-passe atual"
                             name="currentPassword"
@@ -238,13 +231,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                         />
 
                         {passwordError && (
-                            <div
-                                className="p-3 text-sm rounded-sm"
-                                style={{
-                                    backgroundColor: "rgba(239, 68, 68, 0.1)",
-                                    color: "var(--color-error)",
-                                }}
-                            >
+                            <div className="ds-alert-error">
                                 {passwordError}
                             </div>
                         )}
@@ -273,18 +260,14 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                         </p>
                     )
                 )}
-            </Card>
+            </div>
 
             {/* Logout Button */}
-            <Card>
-                <button
-                    onClick={handleLogout}
-                    className="w-full py-3 text-center font-medium"
-                    style={{ color: "var(--color-error)" }}
-                >
+            <div className="cliente-profile-card" style={{ padding: 0 }}>
+                <button onClick={handleLogout} className="cliente-profile-logout">
                     Terminar sessão
                 </button>
-            </Card>
+            </div>
         </div>
     );
 }
