@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope, Poppins } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Providers } from "./providers";
 import "./styles.css";
 
@@ -32,6 +33,7 @@ export default function RootLayout({
     <html lang="pt">
       <body className={`${manrope.variable} ${poppins.variable}`} suppressHydrationWarning>
         <Providers>{children}</Providers>
+        <SpeedInsights />
       </body>
     </html>
   );
