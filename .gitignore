@@ -41,9 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 
-#Ignore vscode AI rules
+# IDE & AI tools
 .github/instructions/codacy.instructions.md
-
-# Client documentation (private)
-docs/PROPOSTA_JOANA.md
-docs/REUNIAO_CLIENTE.md
+.codacy/

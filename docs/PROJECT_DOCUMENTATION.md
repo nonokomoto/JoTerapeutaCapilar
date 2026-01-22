@@ -14,7 +14,7 @@ A **Jo Terapeuta Capilar** é uma aplicação web desenvolvida para gerir o acom
 |------|---------|
 | **URL de Produção** | app.joterapeutacapilar.com |
 | **Tecnologias** | Next.js 15, Supabase, Vercel |
-| **Idioma** | Português (Portugal) |
+| **Idioma** | Português (Portugal) | Francês
 | **Abordagem** | Mobile-First |
 
 ---
