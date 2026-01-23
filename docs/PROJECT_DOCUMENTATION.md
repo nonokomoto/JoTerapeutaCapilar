@@ -258,6 +258,16 @@ Login (com password temporária ou própria)
 
 ---
 
+## Documentação Técnica Adicional
+
+### Planos de Desenvolvimento
+
+- **[Plano de Refatoração - Fases 1-2](./refactoring-plan-phase-1-2.md)** - Refatoração de componentes UI Core e Layouts para produção
+- **[Análise de Viabilidade](./viability_analysis.md)** - Análise técnica e de viabilidade do projeto
+- **[ADRs](./adr/)** - Architecture Decision Records (decisões arquiteturais)
+
+---
+
 ## Contactos e Suporte
 
 Para questões técnicas ou suporte, contactar a equipa de desenvolvimento.
