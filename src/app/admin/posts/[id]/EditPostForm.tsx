@@ -3,10 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, Input } from "@/components/ui";
+import { Button, Input, TextArea, PageHeader, Icon } from "@/components/ui";
 import { ImagePicker } from "@/components/ImagePicker";
 import { updatePostAction, deletePostAction } from "../actions";
-import { ArrowLeft, Save, Send, Trash2 } from "lucide-react";
 
 interface Post {
     id: string;
@@ -71,22 +70,16 @@ export function EditPostForm({ post }: EditPostFormProps) {
 
     return (
         <div className="post-form-container">
-            {/* Header */}
-            <div className="post-form-header">
-                <Link href="/admin/posts" className="post-form-back">
-                    <ArrowLeft size={20} />
-                </Link>
-                <div className="flex-1">
-                    <h1 className="post-form-title">Editar Publicação</h1>
-                    <p className="post-form-subtitle">
-                        Criada a {new Date(post.created_at).toLocaleDateString("pt-PT", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                        })}
-                    </p>
-                </div>
-            </div>
+            <PageHeader
+                title="Editar Publicação"
+                subtitle={`Criada a ${new Date(post.created_at).toLocaleDateString("pt-PT", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                })}`}
+                backHref="/admin/posts"
+                backLabel="Publicações"
+            />
 
             {/* Form */}
             <div className="post-form-card">
@@ -115,19 +108,13 @@ export function EditPostForm({ post }: EditPostFormProps) {
 
                     {/* Content */}
                     <div className="post-form-field">
-                        <label htmlFor="content">Conteúdo</label>
-                        <textarea
-                            id="content"
+                        <TextArea
+                            label="Conteúdo"
                             name="content"
                             rows={8}
-                            className="input"
                             defaultValue={post.content}
                             placeholder="Escreva o conteúdo da publicação..."
                             required
-                            style={{
-                                resize: "vertical",
-                                minHeight: "200px",
-                            }}
                         />
                     </div>
 
@@ -147,7 +134,7 @@ export function EditPostForm({ post }: EditPostFormProps) {
                                 onClick={() => setShowDeleteConfirm(true)}
                                 className="post-delete-btn"
                             >
-                                <Trash2 size={16} />
+                                <Icon name="trash" size="sm" />
                             </button>
                         ) : (
                             <div className="post-delete-confirm">
@@ -193,7 +180,7 @@ export function EditPostForm({ post }: EditPostFormProps) {
                                     isLoading={isLoading}
                                     data-action="publish"
                                 >
-                                    <Save size={16} />
+                                    <Icon name="save" size="sm" />
                                     Guardar
                                 </Button>
                             </>
@@ -205,7 +192,7 @@ export function EditPostForm({ post }: EditPostFormProps) {
                                     isLoading={isLoading}
                                     data-action="draft"
                                 >
-                                    <Save size={16} />
+                                    <Icon name="save" size="sm" />
                                     Guardar Rascunho
                                 </Button>
                                 <Button
@@ -213,7 +200,7 @@ export function EditPostForm({ post }: EditPostFormProps) {
                                     isLoading={isLoading}
                                     data-action="publish"
                                 >
-                                    <Send size={16} />
+                                    <Icon name="send" size="sm" />
                                     Publicar
                                 </Button>
                             </>

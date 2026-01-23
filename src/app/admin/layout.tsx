@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AdminLayout } from "@/components/layouts";
+import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 
 export default async function AdminLayoutWrapper({
     children,
@@ -36,5 +37,9 @@ export default async function AdminLayoutWrapper({
         redirect("/cliente");
     }
 
-    return <AdminLayout profile={profile}>{children}</AdminLayout>;
+    return (
+        <AdminLayout profile={profile}>
+            <ClientErrorBoundary>{children}</ClientErrorBoundary>
+        </AdminLayout>
+    );
 }

@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui";
-import { Plus } from "lucide-react";
+import { Button, PageHeader, Icon, Skeleton } from "@/components/ui";
 import { ClientsTable } from "./ClientsTable";
 import { SearchInput } from "./SearchInput";
 
@@ -31,7 +30,7 @@ export default async function AdminClientes({
     const { data: clients } = await query;
 
     // Get update counts for initial clients
-    let updateCounts: Record<string, number> = {};
+    const updateCounts: Record<string, number> = {};
     if (clients && clients.length > 0) {
         const clientIds = clients.map(c => c.id);
         const { data: counts } = await supabase
@@ -55,26 +54,25 @@ export default async function AdminClientes({
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <h1 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-heading)" }}>
-                    Clientes
-                </h1>
-                <Link href="/admin/clientes/novo">
-                    <Button className="gap-2">
-                        <Plus size={16} />
-                        Novo Cliente
-                    </Button>
-                </Link>
-            </div>
+            <PageHeader
+                title="Clientes"
+                actions={
+                    <Link href="/admin/clientes/novo">
+                        <Button className="gap-2">
+                            <Icon name="plus" size="sm" />
+                            Novo Cliente
+                        </Button>
+                    </Link>
+                }
+            />
 
             {/* Search */}
-            <Suspense fallback={<div className="h-[42px] max-w-sm bg-gray-100 rounded-lg animate-pulse" />}>
+            <Suspense fallback={<Skeleton variant="rectangular" height={42} width="100%" className="max-w-sm" />}>
                 <SearchInput />
             </Suspense>
 
             {/* Clients Table with Infinite Scroll */}
-            <ClientsTable 
+            <ClientsTable
                 initialClients={clientsWithCounts}
                 initialHasMore={hasMore}
                 searchQuery={q}
