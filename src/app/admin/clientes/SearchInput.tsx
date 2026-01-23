@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useTransition, useRef } from "react";
-import { Search, X, Loader2 } from "lucide-react";
+import { Icon } from "@/components/ui";
 
 export function SearchInput() {
     const router = useRouter();
@@ -54,37 +54,29 @@ export function SearchInput() {
 
     return (
         <div className="relative max-w-sm">
-            <Search 
-                size={18} 
-                className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
-                style={{ color: "var(--color-gray-400)" }}
-            />
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none ds-text-muted">
+                <Icon name="search" size={18} />
+            </div>
             <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Pesquisar clientes..."
-                className="w-full h-[42px] pl-11 pr-10 text-sm rounded-lg border bg-white transition-all focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                style={{ 
-                    borderColor: "var(--color-gray-200)",
-                    color: "var(--text-primary)",
-                }}
+                className="search-input"
             />
             {/* Clear / Loading indicator */}
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
                 {isPending ? (
-                    <Loader2 
-                        size={16} 
-                        className="animate-spin"
-                        style={{ color: "var(--color-gray-400)" }}
-                    />
+                    <div className="ds-text-muted animate-spin">
+                        <Icon name="loader" size={16} />
+                    </div>
                 ) : query ? (
                     <button
                         type="button"
                         onClick={clearSearch}
-                        className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                        className="search-input-clear"
                     >
-                        <X size={14} style={{ color: "var(--color-gray-400)" }} />
+                        <Icon name="x" size={14} />
                     </button>
                 ) : null}
             </div>

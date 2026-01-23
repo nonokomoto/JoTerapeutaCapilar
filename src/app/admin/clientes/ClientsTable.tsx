@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Card, Button } from "@/components/ui";
-import { Plus, Users, ChevronRight, Loader2 } from "lucide-react";
+import { Card, Icon, EmptyState } from "@/components/ui";
 import type { Profile } from "@/types";
 
 interface ClientWithCount extends Profile {
@@ -110,60 +109,32 @@ export function ClientsTable({ initialClients, initialHasMore, searchQuery }: Cl
 
     if (clients.length === 0) {
         return (
-            <Card className="py-16">
-                <div className="text-center">
-                    <div 
-                        className="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-4"
-                        style={{ background: "var(--color-accent-bg)" }}
-                    >
-                        <Users size={28} style={{ color: "var(--color-accent)" }} />
-                    </div>
-                    <h3 
-                        className="font-semibold text-lg mb-2"
-                        style={{ fontFamily: "var(--font-heading)" }}
-                    >
-                        {searchQuery ? "Sem resultados" : "Sem clientes"}
-                    </h3>
-                    <p 
-                        className="text-sm mb-5 max-w-xs mx-auto"
-                        style={{ color: "var(--color-gray-500)" }}
-                    >
-                        {searchQuery
+            <Card>
+                <EmptyState
+                    icon="users"
+                    title={searchQuery ? "Sem resultados" : "Sem clientes"}
+                    description={
+                        searchQuery
                             ? "Nenhum cliente encontrado para esta pesquisa"
-                            : "Comece por adicionar o seu primeiro cliente"}
-                    </p>
-                    {!searchQuery && (
-                        <Link href="/admin/clientes/novo">
-                            <Button className="gap-2">
-                                <Plus size={16} />
-                                Adicionar cliente
-                            </Button>
-                        </Link>
-                    )}
-                </div>
+                            : "Comece por adicionar o seu primeiro cliente"
+                    }
+                    action={
+                        !searchQuery
+                            ? {
+                                  label: "Adicionar cliente",
+                                  onClick: () => (window.location.href = "/admin/clientes/novo"),
+                              }
+                            : undefined
+                    }
+                />
             </Card>
         );
     }
 
     return (
-        <div 
-            className="overflow-hidden shadow-sm"
-            style={{ 
-                background: "#fff",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid var(--color-gray-200)",
-            }}
-        >
+        <div className="clients-table-container">
             {/* Table Header */}
-            <div 
-                className="grid items-center px-5 py-3.5 text-xs font-medium uppercase tracking-wide"
-                style={{ 
-                    gridTemplateColumns: "1fr 1.2fr 1fr 100px",
-                    background: "var(--color-gray-50)",
-                    borderBottom: "1px solid var(--color-gray-200)",
-                    color: "var(--color-gray-500)",
-                }}
-            >
+            <div className="clients-table-header">
                 <span>Nome</span>
                 <span className="hidden md:block">Email</span>
                 <span className="hidden lg:block">Telefone</span>
@@ -173,78 +144,39 @@ export function ClientsTable({ initialClients, initialHasMore, searchQuery }: Cl
             {/* Table Body */}
             <div>
                 {clients.map((client, index) => (
-                    <Link 
+                    <Link
                         key={client.id}
                         href={`/admin/clientes/${client.id}`}
-                        className="grid items-center px-5 py-4 transition-colors hover:bg-gray-50 group"
-                        style={{ 
-                            gridTemplateColumns: "1fr 1.2fr 1fr 100px",
-                            borderTop: index > 0 ? "1px solid var(--color-gray-100)" : "none",
-                        }}
+                        className={`clients-table-row ${index > 0 ? "clients-table-row-border" : ""}`}
                     >
                         {/* Nome */}
                         <div>
-                            <span 
-                                className="font-medium text-sm"
-                                style={{ color: "var(--text-primary)" }}
-                            >
-                                {client.name}
-                            </span>
-                            <span 
-                                className="block md:hidden text-xs mt-0.5"
-                                style={{ color: "var(--color-gray-500)" }}
-                            >
-                                {client.email}
-                            </span>
+                            <span className="clients-table-name">{client.name}</span>
+                            <span className="clients-table-email-mobile">{client.email}</span>
                         </div>
 
                         {/* Email */}
-                        <span 
-                            className="hidden md:block text-sm"
-                            style={{ color: "var(--color-gray-500)" }}
-                        >
-                            {client.email}
-                        </span>
+                        <span className="hidden md:block clients-table-cell">{client.email}</span>
 
                         {/* Telefone */}
-                        <span 
-                            className="hidden lg:block text-sm"
-                            style={{ color: "var(--color-gray-500)" }}
-                        >
-                            {client.phone || "—"}
-                        </span>
+                        <span className="hidden lg:block clients-table-cell">{client.phone || "—"}</span>
 
                         {/* Atualizações */}
-                        <div className="flex items-center justify-center gap-2">
-                            <span 
-                                className="text-sm font-semibold"
-                                style={{ color: "var(--color-primary)" }}
-                            >
-                                {client.updateCount}
+                        <div className="clients-table-updates">
+                            <span className="clients-table-count">{client.updateCount}</span>
+                            <span className="clients-table-chevron">
+                                <Icon name="chevron-right" size="sm" />
                             </span>
-                            <ChevronRight 
-                                size={16} 
-                                className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                style={{ color: "var(--color-gray-400)" }}
-                            />
                         </div>
                     </Link>
                 ))}
             </div>
 
             {/* Loading indicator / Infinite scroll trigger */}
-            <div 
-                ref={loaderRef}
-                className="px-5 py-3 text-xs flex items-center justify-center gap-2"
-                style={{ 
-                    borderTop: "1px solid var(--color-gray-100)",
-                    color: "var(--color-gray-400)",
-                    background: "var(--color-gray-50)",
-                }}
-            >
+            <div ref={loaderRef} className="clients-table-footer">
                 {isLoading ? (
                     <>
-                        <Loader2 size={14} className="animate-spin" />
+                        <Icon name="loader" size={14} className="animate-spin" />
                         <span>A carregar mais clientes...</span>
                     </>
                 ) : hasMore ? (

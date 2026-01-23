@@ -2,14 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Button, Input } from "@/components/ui";
+import { Button, Input, TextArea, PageHeader, Icon } from "@/components/ui";
 import { ImagePicker } from "@/components/ImagePicker";
 import { createPostAction } from "../actions";
-import { ArrowLeft, Save, Send } from "lucide-react";
 
 export default function NovoPost() {
-    const router = useRouter();
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -35,18 +32,12 @@ export default function NovoPost() {
 
     return (
         <div className="post-form-container">
-            {/* Header */}
-            <div className="post-form-header">
-                <Link href="/admin/posts" className="post-form-back">
-                    <ArrowLeft size={20} />
-                </Link>
-                <div>
-                    <h1 className="post-form-title">Nova Publicação</h1>
-                    <p className="post-form-subtitle">
-                        Crie conteúdo para partilhar com os seus clientes
-                    </p>
-                </div>
-            </div>
+            <PageHeader
+                title="Nova Publicação"
+                subtitle="Crie conteúdo para partilhar com os seus clientes"
+                backHref="/admin/posts"
+                backLabel="Publicações"
+            />
 
             {/* Form */}
             <div className="post-form-card">
@@ -74,18 +65,12 @@ export default function NovoPost() {
 
                     {/* Content */}
                     <div className="post-form-field">
-                        <label htmlFor="content">Conteúdo</label>
-                        <textarea
-                            id="content"
+                        <TextArea
+                            label="Conteúdo"
                             name="content"
                             rows={8}
-                            className="input"
                             placeholder="Escreva o conteúdo da publicação..."
                             required
-                            style={{
-                                resize: "vertical",
-                                minHeight: "200px",
-                            }}
                         />
                     </div>
 
@@ -109,7 +94,7 @@ export default function NovoPost() {
                             isLoading={isLoading}
                             data-action="draft"
                         >
-                            <Save size={16} />
+                            <Icon name="save" size="sm" />
                             Guardar Rascunho
                         </Button>
                         <Button
@@ -117,7 +102,7 @@ export default function NovoPost() {
                             isLoading={isLoading}
                             data-action="publish"
                         >
-                            <Send size={16} />
+                            <Icon name="send" size="sm" />
                             Publicar
                         </Button>
                     </div>

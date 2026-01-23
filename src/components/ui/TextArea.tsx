@@ -1,37 +1,37 @@
-import { InputHTMLAttributes, forwardRef } from "react";
+import { TextareaHTMLAttributes, forwardRef } from "react";
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+export interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
     label?: string;
     error?: string;
     hint?: string;
 }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
+const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     ({ label, error, hint, className = "", id, ...props }, ref) => {
-        const inputId = id || props.name;
+        const textareaId = id || props.name;
         const hasError = !!error;
 
         return (
             <div className="w-full">
                 {label && (
                     <label
-                        htmlFor={inputId}
+                        htmlFor={textareaId}
                         className={`block text-sm font-medium mb-2 ${hasError ? "ds-text-error" : "ds-text-secondary"}`}
                     >
                         {label}
                     </label>
                 )}
-                <input
+                <textarea
                     ref={ref}
-                    id={inputId}
-                    className={`input ${hasError ? "input-error" : ""} ${className}`}
+                    id={textareaId}
+                    className={`textarea ${hasError ? "textarea-error" : ""} ${className}`}
                     aria-invalid={hasError}
-                    aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
+                    aria-describedby={error ? `${textareaId}-error` : hint ? `${textareaId}-hint` : undefined}
                     {...props}
                 />
                 {error && (
                     <p
-                        id={`${inputId}-error`}
+                        id={`${textareaId}-error`}
                         className="mt-2 text-sm ds-text-error"
                         role="alert"
                     >
@@ -40,7 +40,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 )}
                 {hint && !error && (
                     <p
-                        id={`${inputId}-hint`}
+                        id={`${textareaId}-hint`}
                         className="mt-2 text-sm ds-text-muted"
                     >
                         {hint}
@@ -51,6 +51,6 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     }
 );
 
-Input.displayName = "Input";
+TextArea.displayName = "TextArea";
 
-export { Input };
+export { TextArea };
