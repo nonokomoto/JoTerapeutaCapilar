@@ -127,6 +127,13 @@ export default function NovoCliente() {
                         placeholder="+351 912 345 678"
                     />
 
+                    <Input
+                        label="Primeira visita"
+                        name="first_visit_date"
+                        type="date"
+                        hint="Data da primeira consulta/tratamento (opcional)"
+                    />
+
                     <TextArea
                         label="Notas (privadas)"
                         name="notes"

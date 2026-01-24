@@ -143,3 +143,30 @@ export function useDeleteClient() {
         },
     });
 }
+
+// Client Statistics
+export interface ClientStats {
+    total: number;
+    comMarcacao: number;
+    semMarcacao: number;
+}
+
+async function fetchClientStats(): Promise<ClientStats> {
+    const res = await fetch("/api/admin/client-stats");
+    if (!res.ok) throw new Error("Failed to fetch client stats");
+    return res.json();
+}
+
+/**
+ * Fetches aggregated statistics for clients (active, inactive, upcoming)
+ * @param initialData - SSR data to hydrate cache immediately
+ */
+export function useClientStats(initialData?: ClientStats) {
+    return useQuery({
+        queryKey: queryKeys.admin.clientStats(),
+        queryFn: fetchClientStats,
+        initialData,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        placeholderData: (previousData) => previousData,
+    });
+}

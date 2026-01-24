@@ -9,6 +9,7 @@ export const queryKeys = {
         stats: () => [...queryKeys.admin.all, "stats"] as const,
         recentClients: (limit?: number) =>
             [...queryKeys.admin.all, "recentClients", { limit }] as const,
+        clientStats: () => [...queryKeys.admin.all, "clientStats"] as const,
     },
 
     // Client dashboard queries

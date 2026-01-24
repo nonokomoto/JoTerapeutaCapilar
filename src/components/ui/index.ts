@@ -32,6 +32,8 @@ export type { SkeletonProps } from "./Skeleton";
 export { TextArea } from "./TextArea";
 export type { TextAreaProps } from "./TextArea";
 
+export { ClientStatusBadge } from "./ClientStatusBadge";
+
 export { Select } from "./Select";
 export type { SelectProps, SelectOption } from "./Select";
 

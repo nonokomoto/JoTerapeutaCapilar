@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Icon, PageHeader, EmptyState, Avatar } from "@/components/ui";
+import { Icon, PageHeader, EmptyState, Avatar, ClientStatusBadge } from "@/components/ui";
+import { calculateClientStatus } from "@/lib/utils/clientStatus";
+import { AppointmentsSection } from "./AppointmentsSection";
 import { CreateUpdateModal } from "./CreateUpdateModal";
 import { ResetPasswordButton } from "./ResetPasswordButton";
 import { EditClientModal } from "./EditClientModal";
@@ -25,7 +27,10 @@ export default async function ClienteDetalhe({
         notFound();
     }
 
+    const status = calculateClientStatus(client);
+
     // Get client updates
+    // ... existing updates query ...
     const { data: updates } = await supabase
         .from("client_updates")
         .select(
@@ -117,6 +122,16 @@ export default async function ClienteDetalhe({
             <div className="grid lg:grid-cols-3 gap-6">
                 {/* Sidebar */}
                 <div className="lg:col-span-1 space-y-4">
+                    {/* Appointments Card */}
+                    <AppointmentsSection
+                        clientId={client.id}
+                        clientData={{
+                            first_visit_date: client.first_visit_date,
+                            last_appointment_date: client.last_appointment_date,
+                            next_appointment_date: client.next_appointment_date
+                        }}
+                    />
+
                     {/* Notes Card */}
                     <div className="client-notes-card">
                         <div className="client-notes-header">

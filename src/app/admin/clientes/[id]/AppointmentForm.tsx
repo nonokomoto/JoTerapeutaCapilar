@@ -1,0 +1,149 @@
+"use client";
+
+import { useState } from "react";
+import { Button, Input } from "@/components/ui";
+import { Appointment } from "@/types/database";
+
+interface AppointmentFormProps {
+    clientId: string;
+    appointment?: Appointment | null;
+    onSubmit: (data: {
+        appointment_date: string;
+        appointment_type: "tratamento" | "consulta" | "retorno";
+        notes?: string;
+        completed?: boolean;
+    }) => Promise<void>;
+    onCancel: () => void;
+}
+
+export function AppointmentForm({
+    clientId,
+    appointment,
+    onSubmit,
+    onCancel
+}: AppointmentFormProps) {
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Formatar para datetime-local
+    const formatToDatetimeLocal = (isoString: string | null) => {
+        if (!isoString) {
+            // Default: próxima segunda-feira às 14:00
+            const next = new Date();
+            next.setDate(next.getDate() + ((1 + 7 - next.getDay()) % 7 || 7));
+            next.setHours(14, 0, 0, 0);
+            const year = next.getFullYear();
+            const month = String(next.getMonth() + 1).padStart(2, '0');
+            const day = String(next.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}T14:00`;
+        }
+        const date = new Date(isoString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+
+    const [formData, setFormData] = useState({
+        appointment_date: formatToDatetimeLocal(appointment?.appointment_date || null),
+        appointment_type: appointment?.appointment_type || "tratamento" as const,
+        notes: appointment?.notes || "",
+        completed: appointment?.completed || false,
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        try {
+            // Converter datetime-local para ISO string
+            const appointmentDate = new Date(formData.appointment_date).toISOString();
+
+            await onSubmit({
+                appointment_date: appointmentDate,
+                appointment_type: formData.appointment_type,
+                notes: formData.notes || undefined,
+                completed: formData.completed,
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+                label="Data e Hora"
+                type="datetime-local"
+                value={formData.appointment_date}
+                onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    appointment_date: e.target.value
+                }))}
+                required
+            />
+
+            <div>
+                <label className="block ds-text-primary text-sm font-medium mb-2">
+                    Tipo de Marcação
+                </label>
+                <div className="flex gap-2">
+                    {(['tratamento', 'consulta', 'retorno'] as const).map((type) => (
+                        <button
+                            key={type}
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, appointment_type: type }))}
+                            className={`
+                                flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all
+                                ${formData.appointment_type === type
+                                    ? 'bg-[var(--color-primary)] text-white'
+                                    : 'ds-bg-secondary ds-text-secondary hover:ds-bg-muted'
+                                }
+                            `}
+                        >
+                            {type === 'tratamento' && 'Tratamento'}
+                            {type === 'consulta' && 'Consulta'}
+                            {type === 'retorno' && 'Retorno'}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div>
+                <label className="block ds-text-primary text-sm font-medium mb-2">
+                    Notas (opcional)
+                </label>
+                <textarea
+                    value={formData.notes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    rows={3}
+                    placeholder="Observações sobre esta marcação..."
+                    className="w-full px-3 py-2 ds-bg-secondary ds-text-primary rounded-lg ds-border-default focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+                />
+            </div>
+
+            <div className="flex items-center gap-2">
+                <input
+                    type="checkbox"
+                    id="completed"
+                    checked={formData.completed}
+                    onChange={(e) => setFormData(prev => ({ ...prev, completed: e.target.checked }))}
+                    className="w-4 h-4 rounded ds-border-default text-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+                <label htmlFor="completed" className="ds-text-secondary text-sm">
+                    Marcar como realizada
+                </label>
+            </div>
+
+            <div className="flex gap-3 justify-end pt-4 border-t ds-border-subtle">
+                <Button type="button" variant="secondary" onClick={onCancel}>
+                    Cancelar
+                </Button>
+                <Button type="submit" isLoading={isLoading}>
+                    {appointment ? 'Atualizar' : 'Criar Marcação'}
+                </Button>
+            </div>
+        </form>
+    );
+}

@@ -29,6 +29,7 @@ export async function createClientAction(formData: FormData) {
     const name = formData.get("name") as string;
     const phone = formData.get("phone") as string;
     const notes = formData.get("notes") as string;
+    const firstVisitDate = formData.get("first_visit_date") as string;
 
     // Generate a temporary password (12 characters)
     const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
@@ -58,6 +59,9 @@ export async function createClientAction(formData: FormData) {
             .update({
                 phone,
                 notes,
+                first_visit_date: firstVisitDate || null,
+                // Se há primeira visita, também é a última visita inicial
+                last_appointment_date: firstVisitDate || null,
             })
             .eq("id", authData.user.id);
     }
@@ -390,4 +394,388 @@ export async function deleteClientAction(clientId: string) {
     revalidatePath("/admin/clientes");
     revalidatePath("/admin");
     return { success: true };
+}
+
+/**
+ * Atualiza campos de marcação no perfil do cliente
+ */
+export async function updateClientAppointments(
+    clientId: string,
+    data: {
+        first_visit_date?: string | null;
+        last_appointment_date?: string | null;
+        next_appointment_date?: string | null;
+    }
+) {
+    const supabase = await createClient();
+
+    const { error } = await supabase
+        .from("profiles")
+        .update(data)
+        .eq("id", clientId);
+
+    if (error) {
+        return { error: `Erro ao atualizar marcações: ${error.message}` };
+    }
+
+    revalidatePath(`/admin/clientes/${clientId}`);
+    revalidatePath("/admin/clientes");
+    return { success: true };
+}
+
+/**
+ * Cria um registo no histórico de marcações (appointments)
+ * Gera sempre update automático para o cliente (agendada ou realizada)
+ */
+export async function createAppointment(data: {
+    client_id: string;
+    appointment_date: string;
+    appointment_type?: "tratamento" | "consulta" | "retorno";
+    notes?: string;
+    completed?: boolean;
+}) {
+    const supabase = await createClient();
+
+    const { data: appointment, error } = await supabase
+        .from("appointments")
+        .insert(data)
+        .select()
+        .single();
+
+    if (error) {
+        return { error: `Erro ao criar registo de marcação: ${error.message}` };
+    }
+
+    // Criar update automático para o cliente
+    if (appointment) {
+        await createUpdateForNewAppointment({
+            client_id: data.client_id,
+            appointment_date: data.appointment_date,
+            appointment_type: data.appointment_type || "tratamento",
+            notes: data.notes || null,
+            completed: data.completed || false,
+        });
+    }
+
+    // Atualizar campos do profile automaticamente
+    await syncProfileAppointments(data.client_id);
+
+    revalidatePath(`/admin/clientes/${data.client_id}`);
+    revalidatePath("/admin/clientes");
+    return { success: true, data: appointment };
+}
+
+/**
+ * Atualiza uma marcação existente
+ * Se mudar para realizada, gera update automático para o cliente
+ */
+export async function updateAppointment(
+    appointmentId: string,
+    data: {
+        appointment_date?: string;
+        appointment_type?: "tratamento" | "consulta" | "retorno";
+        notes?: string;
+        completed?: boolean;
+    }
+) {
+    const supabase = await createClient();
+
+    // Buscar dados completos antes de atualizar
+    const { data: currentAppointment } = await supabase
+        .from("appointments")
+        .select("client_id, appointment_date, appointment_type, notes, completed")
+        .eq("id", appointmentId)
+        .single();
+
+    if (!currentAppointment) {
+        return { error: "Marcação não encontrada" };
+    }
+
+    const { error } = await supabase
+        .from("appointments")
+        .update(data)
+        .eq("id", appointmentId);
+
+    if (error) {
+        return { error: `Erro ao atualizar marcação: ${error.message}` };
+    }
+
+    // Se estava não-realizada e agora está realizada, criar update automático
+    if (data.completed === true && !currentAppointment.completed) {
+        await createAutoUpdateForAppointment(appointmentId, {
+            client_id: currentAppointment.client_id,
+            appointment_date: data.appointment_date || currentAppointment.appointment_date,
+            appointment_type: data.appointment_type || currentAppointment.appointment_type,
+            notes: data.notes !== undefined ? data.notes : currentAppointment.notes,
+        });
+    }
+
+    // Atualizar campos do profile automaticamente
+    await syncProfileAppointments(currentAppointment.client_id);
+
+    revalidatePath(`/admin/clientes/${currentAppointment.client_id}`);
+    revalidatePath("/admin/clientes");
+    return { success: true };
+}
+
+/**
+ * Marca uma marcação como realizada ou não realizada
+ * Quando marcada como realizada, cria automaticamente uma atualização para o cliente
+ */
+export async function toggleAppointmentComplete(appointmentId: string, completed: boolean) {
+    const supabase = await createClient();
+
+    // Buscar dados completos da marcação
+    const { data: appointment } = await supabase
+        .from("appointments")
+        .select("client_id, appointment_date, appointment_type, notes")
+        .eq("id", appointmentId)
+        .single();
+
+    if (!appointment) {
+        return { error: "Marcação não encontrada" };
+    }
+
+    const { error } = await supabase
+        .from("appointments")
+        .update({ completed })
+        .eq("id", appointmentId);
+
+    if (error) {
+        return { error: `Erro ao atualizar marcação: ${error.message}` };
+    }
+
+    // Se marcada como realizada, criar update automático para o cliente
+    if (completed) {
+        await createAutoUpdateForAppointment(appointmentId, appointment);
+    }
+
+    // Atualizar campos do profile automaticamente
+    await syncProfileAppointments(appointment.client_id);
+
+    revalidatePath(`/admin/clientes/${appointment.client_id}`);
+    revalidatePath("/admin/clientes");
+    return { success: true };
+}
+
+/**
+ * Cria uma atualização quando uma nova marcação é agendada
+ */
+async function createUpdateForNewAppointment(appointment: {
+    client_id: string;
+    appointment_date: string;
+    appointment_type: string;
+    notes: string | null;
+    completed: boolean;
+}) {
+    const supabase = await createClient();
+
+    // Obter admin_id (utilizador atual)
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Formatar data em PT-PT
+    const date = new Date(appointment.appointment_date);
+    const dateFormatted = date.toLocaleDateString("pt-PT", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
+    const timeFormatted = date.toLocaleTimeString("pt-PT", {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+    // Mapear tipo para texto amigável
+    const typeLabels: Record<string, string> = {
+        "tratamento": "Tratamento",
+        "consulta": "Consulta",
+        "retorno": "Retorno"
+    };
+    const typeLabel = typeLabels[appointment.appointment_type] || "Consulta";
+
+    // Template diferente para agendada vs realizada
+    let title: string;
+    let content: string;
+
+    if (appointment.completed) {
+        title = `${typeLabel} realizado`;
+        content = `O seu ${typeLabel.toLowerCase()} de ${dateFormatted} foi concluído com sucesso.`;
+    } else {
+        title = `${typeLabel} agendado`;
+        content = `O seu ${typeLabel.toLowerCase()} foi agendado para ${dateFormatted} às ${timeFormatted}.`;
+    }
+
+    // Adicionar notas se existirem
+    if (appointment.notes) {
+        content += `\n\nObservações: ${appointment.notes}`;
+    }
+
+    // Criar a update
+    await supabase.from("client_updates").insert({
+        client_id: appointment.client_id,
+        admin_id: user.id,
+        title,
+        content
+    });
+}
+
+/**
+ * Cria uma atualização automática quando uma marcação é concluída (toggle)
+ */
+async function createAutoUpdateForAppointment(
+    appointmentId: string,
+    appointment: {
+        client_id: string;
+        appointment_date: string;
+        appointment_type: string;
+        notes: string | null;
+    }
+) {
+    const supabase = await createClient();
+
+    // Verificar se já existe update de "realizado" para evitar duplicados
+    const { data: existingUpdate } = await supabase
+        .from("client_updates")
+        .select("id")
+        .eq("client_id", appointment.client_id)
+        .ilike("title", `%realizado%`)
+        .gte("created_at", new Date(Date.now() - 60000).toISOString())
+        .single();
+
+    if (existingUpdate) {
+        return;
+    }
+
+    // Obter admin_id (utilizador atual)
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Formatar data em PT-PT
+    const date = new Date(appointment.appointment_date);
+    const dateFormatted = date.toLocaleDateString("pt-PT", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
+
+    // Mapear tipo para texto amigável
+    const typeLabels: Record<string, string> = {
+        "tratamento": "Tratamento",
+        "consulta": "Consulta",
+        "retorno": "Retorno"
+    };
+    const typeLabel = typeLabels[appointment.appointment_type] || "Consulta";
+
+    // Template da update
+    const title = `${typeLabel} realizado`;
+    let content = `O seu ${typeLabel.toLowerCase()} de ${dateFormatted} foi concluído com sucesso.`;
+
+    // Adicionar notas se existirem
+    if (appointment.notes) {
+        content += `\n\nObservações: ${appointment.notes}`;
+    }
+
+    // Criar a update
+    await supabase.from("client_updates").insert({
+        client_id: appointment.client_id,
+        admin_id: user.id,
+        title,
+        content
+    });
+}
+
+/**
+ * Elimina uma marcação
+ */
+export async function deleteAppointment(appointmentId: string) {
+    const supabase = await createClient();
+
+    // Buscar client_id antes de eliminar
+    const { data: appointment } = await supabase
+        .from("appointments")
+        .select("client_id")
+        .eq("id", appointmentId)
+        .single();
+
+    if (!appointment) {
+        return { error: "Marcação não encontrada" };
+    }
+
+    const { error } = await supabase
+        .from("appointments")
+        .delete()
+        .eq("id", appointmentId);
+
+    if (error) {
+        return { error: `Erro ao eliminar marcação: ${error.message}` };
+    }
+
+    // Atualizar campos do profile automaticamente
+    await syncProfileAppointments(appointment.client_id);
+
+    revalidatePath(`/admin/clientes/${appointment.client_id}`);
+    revalidatePath("/admin/clientes");
+    return { success: true };
+}
+
+/**
+ * Sincroniza os campos de marcação no profile com base no histórico
+ * - first_visit_date: primeira marcação completa (mais antiga)
+ * - last_appointment_date: última marcação completa (mais recente)
+ * - next_appointment_date: próxima marcação não completa (mais próxima no futuro)
+ */
+async function syncProfileAppointments(clientId: string) {
+    const supabase = await createClient();
+
+    // Buscar todas as marcações do cliente
+    const { data: appointments } = await supabase
+        .from("appointments")
+        .select("appointment_date, completed")
+        .eq("client_id", clientId)
+        .order("appointment_date", { ascending: true });
+
+    if (!appointments) return;
+
+    const now = new Date();
+    const completed = appointments.filter(apt => apt.completed);
+    const upcoming = appointments.filter(
+        apt => !apt.completed && new Date(apt.appointment_date) >= now
+    );
+
+    const first_visit_date = completed.length > 0 ? completed[0].appointment_date : null;
+    const last_appointment_date = completed.length > 0
+        ? completed[completed.length - 1].appointment_date
+        : null;
+    const next_appointment_date = upcoming.length > 0 ? upcoming[0].appointment_date : null;
+
+    // Atualizar profile
+    await supabase
+        .from("profiles")
+        .update({
+            first_visit_date,
+            last_appointment_date,
+            next_appointment_date,
+        })
+        .eq("id", clientId);
+}
+
+/**
+ * Busca todas as marcações de um cliente
+ */
+export async function getClientAppointments(clientId: string) {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+        .from("appointments")
+        .select("*")
+        .eq("client_id", clientId)
+        .order("appointment_date", { ascending: false });
+
+    if (error) {
+        return { error: `Erro ao buscar marcações: ${error.message}` };
+    }
+
+    return { success: true, data: data || [] };
 }

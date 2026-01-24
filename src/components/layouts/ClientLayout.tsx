@@ -99,6 +99,31 @@ function ContentIcon({ active }: NavIconProps) {
     );
 }
 
+function CalendarIcon({ active }: NavIconProps) {
+    return (
+        <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill={active ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth={active ? 0 : 1.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            {!active && (
+                <>
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                </>
+            )}
+        </svg>
+    );
+}
+
 interface ClientLayoutProps {
     children: React.ReactNode;
     profile: Profile;
@@ -107,6 +132,7 @@ interface ClientLayoutProps {
 const navItems = [
     { href: "/cliente", label: "Início", icon: HomeIcon },
     { href: "/cliente/atualizacoes", label: "Atualizações", icon: UpdatesIcon },
+    { href: "/cliente/marcacoes", label: "Marcações", icon: CalendarIcon },
     { href: "/cliente/conteudos", label: "Conteúdos", icon: ContentIcon },
     { href: "/cliente/perfil", label: "Perfil", icon: ProfileIcon },
 ];

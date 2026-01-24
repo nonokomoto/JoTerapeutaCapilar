@@ -1,6 +1,7 @@
 // Database types for Jo Terapeuta Capilar platform
 
 export type UserRole = "admin" | "client";
+export type ClientStatus = "com_marcacao" | "sem_marcacao";
 
 export interface Profile {
     id: string;
@@ -10,6 +11,20 @@ export interface Profile {
     phone: string | null;
     avatar_url: string | null;
     notes: string | null; // Admin notes (only visible to admin)
+    first_visit_date: string | null;
+    last_appointment_date: string | null;
+    next_appointment_date: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Appointment {
+    id: string;
+    client_id: string;
+    appointment_date: string;
+    appointment_type: "tratamento" | "consulta" | "retorno";
+    notes: string | null;
+    completed: boolean;
     created_at: string;
     updated_at: string;
 }
@@ -57,6 +72,11 @@ export interface Database {
                 Row: Profile;
                 Insert: Omit<Profile, "created_at" | "updated_at">;
                 Update: Partial<Omit<Profile, "id" | "created_at">>;
+            };
+            appointments: {
+                Row: Appointment;
+                Insert: Omit<Appointment, "id" | "created_at" | "updated_at">;
+                Update: Partial<Omit<Appointment, "id" | "created_at">>;
             };
             client_updates: {
                 Row: ClientUpdate;
