@@ -157,7 +157,7 @@ export function ClientsTable({ initialClients, initialHasMore, searchQuery, filt
             <div className="clients-table-header">
                 <span>Nome / Contacto</span>
                 <span className="hidden md:block">Status</span>
-                <span className="hidden lg:block">Última Visita</span>
+                <span className="hidden lg:block">Marcação</span>
                 <span className="text-center">Updates</span>
                 <span />
             </div>
@@ -184,10 +184,16 @@ export function ClientsTable({ initialClients, initialHasMore, searchQuery, filt
                                 <ClientStatusBadge status={status} />
                             </div>
 
-                            {/* Última Visita */}
+                            {/* Próxima Marcação */}
                             <div className="clients-table-date-cell hidden lg:block">
-                                {client.last_appointment_date
-                                    ? new Date(client.last_appointment_date).toLocaleDateString('pt-PT')
+                                {client.next_appointment_date
+                                    ? new Date(client.next_appointment_date).toLocaleDateString('pt-PT', {
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })
                                     : "—"}
                             </div>
 

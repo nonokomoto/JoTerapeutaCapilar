@@ -7,12 +7,14 @@ interface AppointmentsHistoryProps {
     appointments: Appointment[];
     onEdit: (appointment: Appointment) => void;
     onToggleComplete: (appointmentId: string, completed: boolean) => void;
+    onDelete: (appointmentId: string) => void;
 }
 
 export function AppointmentsHistory({
     appointments,
     onEdit,
-    onToggleComplete
+    onToggleComplete,
+    onDelete
 }: AppointmentsHistoryProps) {
     // Separar próximas e passadas
     const now = new Date();
@@ -83,6 +85,7 @@ export function AppointmentsHistory({
                                 appointment={apt}
                                 onEdit={onEdit}
                                 onToggleComplete={onToggleComplete}
+                                onDelete={onDelete}
                                 isUpcoming
                             />
                         ))}
@@ -104,6 +107,7 @@ export function AppointmentsHistory({
                                 appointment={apt}
                                 onEdit={onEdit}
                                 onToggleComplete={onToggleComplete}
+                                onDelete={onDelete}
                                 isUpcoming={false}
                             />
                         ))}
@@ -118,11 +122,13 @@ function AppointmentItem({
     appointment,
     onEdit,
     onToggleComplete,
+    onDelete,
     isUpcoming
 }: {
     appointment: Appointment;
     onEdit: (apt: Appointment) => void;
     onToggleComplete: (id: string, completed: boolean) => void;
+    onDelete: (id: string) => void;
     isUpcoming: boolean;
 }) {
     const formatDateTime = (dateString: string) => {
@@ -200,13 +206,22 @@ function AppointmentItem({
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
                     {isUpcoming && !appointment.completed && (
-                        <button
-                            onClick={() => onToggleComplete(appointment.id, true)}
-                            className="p-1.5 hover:ds-bg-success rounded transition-colors"
-                            title="Marcar como realizada"
-                        >
-                            <Icon name="check" size={16} className="ds-text-success" />
-                        </button>
+                        <>
+                            <button
+                                onClick={() => onToggleComplete(appointment.id, true)}
+                                className="p-1.5 hover:ds-bg-success rounded transition-colors"
+                                title="Marcar como realizada"
+                            >
+                                <Icon name="check" size={16} className="ds-text-success" />
+                            </button>
+                            <button
+                                onClick={() => onDelete(appointment.id)}
+                                className="p-1.5 hover:ds-bg-muted rounded transition-colors"
+                                title="Cancelar marcação"
+                            >
+                                <Icon name="x" size={16} className="ds-text-error" />
+                            </button>
+                        </>
                     )}
                     <button
                         onClick={() => onEdit(appointment)}
@@ -220,3 +235,4 @@ function AppointmentItem({
         </div>
     );
 }
+

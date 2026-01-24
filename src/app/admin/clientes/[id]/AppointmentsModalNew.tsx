@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Modal, Button, Icon, IconName } from "@/components/ui";
+import { Modal, Button, Icon, IconName, ConfirmDialog } from "@/components/ui";
 import { AppointmentsHistory } from "./AppointmentsHistory";
 import { AppointmentForm } from "./AppointmentForm";
 import { Appointment } from "@/types/database";
@@ -10,6 +10,7 @@ import {
     createAppointment,
     updateAppointment,
     toggleAppointmentComplete,
+    deleteAppointment,
 } from "../actions";
 
 interface AppointmentsModalNewProps {
@@ -28,6 +29,7 @@ export function AppointmentsModalNew({
     const [activeTab, setActiveTab] = useState<Tab>("upcoming");
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+    const [deletingAppointmentId, setDeletingAppointmentId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     // Carregar marcações quando o modal abre
@@ -46,7 +48,7 @@ export function AppointmentsModalNew({
 
     const handleCreateAppointment = async (data: {
         appointment_date: string;
-        appointment_type: "tratamento" | "consulta" | "retorno";
+        appointment_type: string;
         notes?: string;
         completed?: boolean;
     }) => {
@@ -65,7 +67,7 @@ export function AppointmentsModalNew({
 
     const handleUpdateAppointment = async (data: {
         appointment_date: string;
-        appointment_type: "tratamento" | "consulta" | "retorno";
+        appointment_type: string;
         notes?: string;
         completed?: boolean;
     }) => {
@@ -92,6 +94,22 @@ export function AppointmentsModalNew({
         }
     };
 
+    const handleCancelAppointment = async () => {
+        if (!deletingAppointmentId) return;
+
+        setIsLoading(true);
+        const result = await deleteAppointment(deletingAppointmentId);
+        setIsLoading(false);
+
+        if (result.success) {
+            await loadAppointments();
+            setDeletingAppointmentId(null);
+            onClose();
+        } else {
+            alert(result.error);
+        }
+    };
+
     const handleEdit = (appointment: Appointment) => {
         setEditingAppointment(appointment);
         setActiveTab("edit");
@@ -112,76 +130,91 @@ export function AppointmentsModalNew({
     ).length;
 
     return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            title="Gerir Marcações"
-            size="lg"
-        >
-            {/* Tabs */}
-            {activeTab !== "edit" && (
-                <div className="flex gap-2 mb-6 pb-4 border-b ds-border-subtle">
-                    <TabButton
-                        active={activeTab === "upcoming"}
-                        onClick={() => setActiveTab("upcoming")}
-                        icon="calendar"
-                        label="Próximas"
-                        count={upcomingCount}
-                    />
-                    <TabButton
-                        active={activeTab === "history"}
-                        onClick={() => setActiveTab("history")}
-                        icon="clock"
-                        label="Histórico"
-                        count={historyCount}
-                    />
-                    <TabButton
-                        active={activeTab === "new"}
-                        onClick={() => setActiveTab("new")}
-                        icon="plus"
-                        label="Nova"
-                    />
+        <>
+            <Modal
+                isOpen={isOpen}
+                onClose={onClose}
+                title="Gerir Marcações"
+                size="lg"
+            >
+                {/* Tabs */}
+                {activeTab !== "edit" && (
+                    <div className="flex gap-2 mb-6 pb-4 border-b ds-border-subtle">
+                        <TabButton
+                            active={activeTab === "upcoming"}
+                            onClick={() => setActiveTab("upcoming")}
+                            icon="calendar"
+                            label="Próximas"
+                            count={upcomingCount}
+                        />
+                        <TabButton
+                            active={activeTab === "history"}
+                            onClick={() => setActiveTab("history")}
+                            icon="clock"
+                            label="Histórico"
+                            count={historyCount}
+                        />
+                        <TabButton
+                            active={activeTab === "new"}
+                            onClick={() => setActiveTab("new")}
+                            icon="plus"
+                            label="Nova"
+                        />
+                    </div>
+                )}
+
+                {/* Content */}
+                <div className="min-h-[300px]">
+                    {(activeTab === "upcoming" || activeTab === "history") && (
+                        <AppointmentsHistory
+                            appointments={appointments}
+                            onEdit={handleEdit}
+                            onToggleComplete={handleToggleComplete}
+                            onDelete={(id) => setDeletingAppointmentId(id)}
+                        />
+                    )}
+
+                    {activeTab === "new" && (
+                        <div>
+                            <h3 className="ds-text-primary font-medium mb-4">
+                                Nova Marcação
+                            </h3>
+                            <AppointmentForm
+                                clientId={clientId}
+                                onSubmit={handleCreateAppointment}
+                                onCancel={handleCancelForm}
+                            />
+                        </div>
+                    )}
+
+                    {activeTab === "edit" && editingAppointment && (
+                        <div>
+                            <h3 className="ds-text-primary font-medium mb-4">
+                                Editar Marcação
+                            </h3>
+                            <AppointmentForm
+                                clientId={clientId}
+                                appointment={editingAppointment}
+                                onSubmit={handleUpdateAppointment}
+                                onCancel={handleCancelForm}
+                            />
+                        </div>
+                    )}
                 </div>
-            )}
+            </Modal>
 
-            {/* Content */}
-            <div className="min-h-[300px]">
-                {(activeTab === "upcoming" || activeTab === "history") && (
-                    <AppointmentsHistory
-                        appointments={appointments}
-                        onEdit={handleEdit}
-                        onToggleComplete={handleToggleComplete}
-                    />
-                )}
-
-                {activeTab === "new" && (
-                    <div>
-                        <h3 className="ds-text-primary font-medium mb-4">
-                            Nova Marcação
-                        </h3>
-                        <AppointmentForm
-                            clientId={clientId}
-                            onSubmit={handleCreateAppointment}
-                            onCancel={handleCancelForm}
-                        />
-                    </div>
-                )}
-
-                {activeTab === "edit" && editingAppointment && (
-                    <div>
-                        <h3 className="ds-text-primary font-medium mb-4">
-                            Editar Marcação
-                        </h3>
-                        <AppointmentForm
-                            clientId={clientId}
-                            appointment={editingAppointment}
-                            onSubmit={handleUpdateAppointment}
-                            onCancel={handleCancelForm}
-                        />
-                    </div>
-                )}
-            </div>
-        </Modal>
+            <ConfirmDialog
+                isOpen={!!deletingAppointmentId}
+                onClose={() => setDeletingAppointmentId(null)}
+                onConfirm={handleCancelAppointment}
+                title="Cancelar Marcação"
+                message="Tem a certeza que deseja cancelar esta marcação? Esta ação irá remover o registo e criar uma atualização na linha do tempo do cliente."
+                confirmText="Sim, cancelar"
+                cancelText="Não, manter"
+                variant="danger"
+                isLoading={isLoading}
+            />
+        </>
     );
 }
 

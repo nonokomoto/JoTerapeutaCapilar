@@ -22,7 +22,7 @@ export interface Appointment {
     id: string;
     client_id: string;
     appointment_date: string;
-    appointment_type: "tratamento" | "consulta" | "retorno";
+    appointment_type: string;
     notes: string | null;
     completed: boolean;
     created_at: string;

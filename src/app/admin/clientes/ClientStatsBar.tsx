@@ -20,7 +20,7 @@ export function ClientStatsBar({ initialData }: ClientStatsBarProps) {
 
     const total = stats?.total || 0;
     const comMarcacao = stats?.comMarcacao || 0;
-    const semMarcacao = stats?.semMarcacao || 0;
+
 
     return (
         <div className="client-stats-bar">
@@ -38,15 +38,6 @@ export function ClientStatsBar({ initialData }: ClientStatsBarProps) {
                 <Icon name="calendar" size={16} />
                 <span className="client-stat-value">{comMarcacao}</span>
                 <span className="client-stat-label">com marcação</span>
-            </div>
-
-            <span className="client-stat-divider">•</span>
-
-            {/* Sem marcação */}
-            <div className={`client-stat-item ${semMarcacao > 0 ? "highlight-inactive" : ""}`}>
-                <Icon name="calendar-x" size={16} />
-                <span className="client-stat-value">{semMarcacao}</span>
-                <span className="client-stat-label">sem marcação</span>
             </div>
         </div>
     );

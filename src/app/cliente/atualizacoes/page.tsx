@@ -54,6 +54,11 @@ export default async function ClienteAtualizacoes() {
         `
         )
         .eq("client_id", user?.id)
+        // Filter out automated appointment updates
+        .not("title", "ilike", "%Agendamento%")
+        .not("title", "ilike", "%Consulta Realizada%")
+        .not("title", "ilike", "%Marcação%")
+        .not("title", "ilike", "%Visita realizada%")
         .order("created_at", { ascending: false });
 
     return (

@@ -51,6 +51,11 @@ export default async function ClienteDashboard() {
         .from("client_updates")
         .select("id, title, created_at", { count: "exact" })
         .eq("client_id", user?.id)
+        // Filter out automated appointment updates
+        .not("title", "ilike", "%Agendamento%")
+        .not("title", "ilike", "%Consulta Realizada%")
+        .not("title", "ilike", "%Marcação%")
+        .not("title", "ilike", "%Visita realizada%")
         .order("created_at", { ascending: false })
         .limit(3);
 

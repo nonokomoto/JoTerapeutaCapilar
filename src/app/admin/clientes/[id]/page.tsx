@@ -163,45 +163,84 @@ export default async function ClienteDetalhe({
 
                         {updates && updates.length > 0 ? (
                             <div className="space-y-4">
-                                {updates.map((update) => (
-                                    <div key={update.id} className="client-update-card">
-                                        <div className="client-update-date">
-                                            <Icon name="calendar" size={14} />
-                                            {new Date(update.created_at).toLocaleDateString(
-                                                "pt-PT",
-                                                {
-                                                    day: "numeric",
-                                                    month: "long",
-                                                    year: "numeric",
-                                                }
+                                {updates.map((update) => {
+                                    const getUpdateStyle = (title: string) => {
+                                        const t = title.toLowerCase();
+                                        if (t.includes("agendamento confirmado")) {
+                                            return {
+                                                icon: "calendar" as const,
+                                                colorClass: "text-[var(--color-info)]",
+                                                bgClass: "bg-[var(--color-info-bg)]"
+                                            };
+                                        }
+                                        if (t.includes("consulta realizada")) {
+                                            return {
+                                                icon: "check" as const,
+                                                colorClass: "text-[var(--color-success)]",
+                                                bgClass: "bg-[var(--color-success-bg)]"
+                                            };
+                                        }
+                                        if (t.includes("agendamento cancelado")) {
+                                            return {
+                                                icon: "x" as const,
+                                                colorClass: "text-[var(--color-error)]",
+                                                bgClass: "bg-[var(--color-error-bg)]"
+                                            };
+                                        }
+                                        return null;
+                                    };
+
+                                    const style = getUpdateStyle(update.title);
+
+                                    return (
+                                        <div key={update.id} className="client-update-card">
+                                            <div className="flex items-start gap-3 mb-3">
+                                                {style && (
+                                                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${style.bgClass} ${style.colorClass} shrink-0`}>
+                                                        <Icon name={style.icon} size={18} />
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <h4 className="client-update-title mb-0">{update.title}</h4>
+                                                    <div className="client-update-date opacity-70">
+                                                        {new Date(update.created_at).toLocaleDateString(
+                                                            "pt-PT",
+                                                            {
+                                                                day: "numeric",
+                                                                month: "long",
+                                                                year: "numeric",
+                                                            }
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <p className="client-update-content">{update.content}</p>
+
+                                            {update.attachments && update.attachments.length > 0 && (
+                                                <div className="client-update-attachments">
+                                                    {update.attachments.map((att) => (
+                                                        <a
+                                                            key={att.id}
+                                                            href={att.file_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="client-attachment-badge"
+                                                        >
+                                                            <Icon
+                                                                name={att.file_type === "image" ? "image" : "file-text"}
+                                                                size={14}
+                                                            />
+                                                            <span className="truncate max-w-[120px]">
+                                                                {att.file_name}
+                                                            </span>
+                                                        </a>
+                                                    ))}
+                                                </div>
                                             )}
                                         </div>
-                                        <h4 className="client-update-title">{update.title}</h4>
-                                        <p className="client-update-content">{update.content}</p>
-
-                                        {update.attachments && update.attachments.length > 0 && (
-                                            <div className="client-update-attachments">
-                                                {update.attachments.map((att) => (
-                                                    <a
-                                                        key={att.id}
-                                                        href={att.file_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="client-attachment-badge"
-                                                    >
-                                                        <Icon
-                                                            name={att.file_type === "image" ? "image" : "file-text"}
-                                                            size={14}
-                                                        />
-                                                        <span className="truncate max-w-[120px]">
-                                                            {att.file_name}
-                                                        </span>
-                                                    </a>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         ) : (
                             <EmptyState
@@ -214,5 +253,6 @@ export default async function ClienteDetalhe({
                 </div>
             </div>
         </div>
+
     );
 }

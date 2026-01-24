@@ -4,8 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button, Card, Input, TextArea, PageHeader, Icon } from "@/components/ui";
 import { useCreateClient } from "@/lib/queries";
+import { AppointmentsModalNew } from "../[id]/AppointmentsModalNew";
 
 type Credentials = {
+    id: string;
     email: string;
     password: string;
 };
@@ -13,6 +15,7 @@ type Credentials = {
 export default function NovoCliente() {
     const [credentials, setCredentials] = useState<Credentials | null>(null);
     const [copied, setCopied] = useState<string | null>(null);
+    const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
 
     const createClient = useCreateClient();
 
@@ -20,6 +23,7 @@ export default function NovoCliente() {
         try {
             const result = await createClient.mutateAsync(formData);
             if (result?.success && result?.credentials) {
+                // @ts-ignore - Credentials updated in action but type inference might lag without strict type sharing
                 setCredentials(result.credentials);
             }
         } catch {
@@ -83,12 +87,32 @@ export default function NovoCliente() {
                         </button>
                     </div>
 
-                    <div className="mt-6 pt-4 border-t ds-border-default">
-                        <Link href="/admin/clientes">
-                            <Button fullWidth>Voltar à lista de clientes</Button>
-                        </Link>
+                    <div className="mt-8 space-y-3">
+                        <Button
+                            fullWidth
+                            size="lg"
+                            className="bg-green-600 hover:bg-green-700 text-white shadow-md transition-all hover:-translate-y-0.5"
+                            onClick={() => setIsAppointmentModalOpen(true)}
+                        >
+                            <Icon name="calendar" className="mr-2" />
+                            Agendar Marcação Agora
+                        </Button>
+
+                        <div className="pt-4 border-t ds-border-default">
+                            <Link href="/admin/clientes">
+                                <Button variant="secondary" fullWidth>Voltar à lista de clientes</Button>
+                            </Link>
+                        </div>
                     </div>
                 </Card>
+
+                {isAppointmentModalOpen && (
+                    <AppointmentsModalNew
+                        clientId={credentials.id}
+                        isOpen={isAppointmentModalOpen}
+                        onClose={() => setIsAppointmentModalOpen(false)}
+                    />
+                )}
             </div>
         );
     }
@@ -127,13 +151,6 @@ export default function NovoCliente() {
                         placeholder="+351 912 345 678"
                     />
 
-                    <Input
-                        label="Primeira visita"
-                        name="first_visit_date"
-                        type="date"
-                        hint="Data da primeira consulta/tratamento (opcional)"
-                    />
-
                     <TextArea
                         label="Notas (privadas)"
                         name="notes"
@@ -168,3 +185,4 @@ export default function NovoCliente() {
         </div>
     );
 }
+

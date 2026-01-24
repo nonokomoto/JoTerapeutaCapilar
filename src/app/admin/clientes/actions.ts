@@ -72,6 +72,7 @@ export async function createClientAction(formData: FormData) {
     return {
         success: true,
         credentials: {
+            id: authData.user.id,
             email,
             password: tempPassword,
         }
@@ -430,7 +431,7 @@ export async function updateClientAppointments(
 export async function createAppointment(data: {
     client_id: string;
     appointment_date: string;
-    appointment_type?: "tratamento" | "consulta" | "retorno";
+    appointment_type?: string;
     notes?: string;
     completed?: boolean;
 }) {
@@ -473,7 +474,7 @@ export async function updateAppointment(
     appointmentId: string,
     data: {
         appointment_date?: string;
-        appointment_type?: "tratamento" | "consulta" | "retorno";
+        appointment_type?: string;
         notes?: string;
         completed?: boolean;
     }
@@ -587,24 +588,16 @@ async function createUpdateForNewAppointment(appointment: {
         minute: "2-digit"
     });
 
-    // Mapear tipo para texto amigável
-    const typeLabels: Record<string, string> = {
-        "tratamento": "Tratamento",
-        "consulta": "Consulta",
-        "retorno": "Retorno"
-    };
-    const typeLabel = typeLabels[appointment.appointment_type] || "Consulta";
-
     // Template diferente para agendada vs realizada
     let title: string;
     let content: string;
 
     if (appointment.completed) {
-        title = `${typeLabel} realizado`;
-        content = `O seu ${typeLabel.toLowerCase()} de ${dateFormatted} foi concluído com sucesso.`;
+        title = "Consulta Realizada";
+        content = `O agendamento de ${dateFormatted} foi concluído com sucesso.`;
     } else {
-        title = `${typeLabel} agendado`;
-        content = `O seu ${typeLabel.toLowerCase()} foi agendado para ${dateFormatted} às ${timeFormatted}.`;
+        title = "Agendamento Confirmado";
+        content = `O seu agendamento está confirmado para ${dateFormatted} às ${timeFormatted}.`;
     }
 
     // Adicionar notas se existirem
@@ -660,17 +653,9 @@ async function createAutoUpdateForAppointment(
         year: "numeric"
     });
 
-    // Mapear tipo para texto amigável
-    const typeLabels: Record<string, string> = {
-        "tratamento": "Tratamento",
-        "consulta": "Consulta",
-        "retorno": "Retorno"
-    };
-    const typeLabel = typeLabels[appointment.appointment_type] || "Consulta";
-
     // Template da update
-    const title = `${typeLabel} realizado`;
-    let content = `O seu ${typeLabel.toLowerCase()} de ${dateFormatted} foi concluído com sucesso.`;
+    const title = "Consulta Realizada";
+    let content = `O agendamento de ${dateFormatted} foi concluído com sucesso.`;
 
     // Adicionar notas se existirem
     if (appointment.notes) {
@@ -687,21 +672,72 @@ async function createAutoUpdateForAppointment(
 }
 
 /**
+ * Cria uma atualização automática quando uma marcação é cancelada (eliminada)
+ */
+async function createAutoUpdateForCancelledAppointment(
+    appointment: {
+        client_id: string;
+        appointment_date: string;
+        appointment_type: string;
+        notes: string | null;
+    }
+) {
+    const supabase = await createClient();
+
+    // Obter admin_id (utilizador atual)
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Formatar data em PT-PT
+    const date = new Date(appointment.appointment_date);
+    const dateFormatted = date.toLocaleDateString("pt-PT", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
+    const timeFormatted = date.toLocaleTimeString("pt-PT", {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+    // Template da update
+    const title = "Agendamento Cancelado";
+    let content = `O agendamento de ${dateFormatted} às ${timeFormatted} foi cancelado.`;
+
+    // Adicionar notas se existirem
+    if (appointment.notes) {
+        content += `\n\nMotivo/Notas: ${appointment.notes}`;
+    }
+
+    // Criar a update
+    await supabase.from("client_updates").insert({
+        client_id: appointment.client_id,
+        admin_id: user.id,
+        title,
+        content
+    });
+}
+
+
+/**
  * Elimina uma marcação
  */
 export async function deleteAppointment(appointmentId: string) {
     const supabase = await createClient();
 
-    // Buscar client_id antes de eliminar
+    // Buscar dados completos antes de eliminar para criar update
     const { data: appointment } = await supabase
         .from("appointments")
-        .select("client_id")
+        .select("client_id, appointment_date, appointment_type, notes")
         .eq("id", appointmentId)
         .single();
 
     if (!appointment) {
         return { error: "Marcação não encontrada" };
     }
+
+    // Criar atualização automática de cancelamento
+    await createAutoUpdateForCancelledAppointment(appointment);
 
     const { error } = await supabase
         .from("appointments")

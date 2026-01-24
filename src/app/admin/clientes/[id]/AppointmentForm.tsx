@@ -9,7 +9,7 @@ interface AppointmentFormProps {
     appointment?: Appointment | null;
     onSubmit: (data: {
         appointment_date: string;
-        appointment_type: "tratamento" | "consulta" | "retorno";
+        appointment_type: string;
         notes?: string;
         completed?: boolean;
     }) => Promise<void>;
@@ -47,7 +47,7 @@ export function AppointmentForm({
 
     const [formData, setFormData] = useState({
         appointment_date: formatToDatetimeLocal(appointment?.appointment_date || null),
-        appointment_type: appointment?.appointment_type || "tratamento" as const,
+        appointment_type: appointment?.appointment_type || "",
         notes: appointment?.notes || "",
         completed: appointment?.completed || false,
     });
@@ -84,31 +84,16 @@ export function AppointmentForm({
                 required
             />
 
-            <div>
-                <label className="block ds-text-primary text-sm font-medium mb-2">
-                    Tipo de Marcação
-                </label>
-                <div className="flex gap-2">
-                    {(['tratamento', 'consulta', 'retorno'] as const).map((type) => (
-                        <button
-                            key={type}
-                            type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, appointment_type: type }))}
-                            className={`
-                                flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all
-                                ${formData.appointment_type === type
-                                    ? 'bg-[var(--color-primary)] text-white'
-                                    : 'ds-bg-secondary ds-text-secondary hover:ds-bg-muted'
-                                }
-                            `}
-                        >
-                            {type === 'tratamento' && 'Tratamento'}
-                            {type === 'consulta' && 'Consulta'}
-                            {type === 'retorno' && 'Retorno'}
-                        </button>
-                    ))}
-                </div>
-            </div>
+            <Input
+                label="Tipo de Marcação"
+                placeholder="Ex: Terapia de Ozono, Avaliação Capilar..."
+                value={formData.appointment_type}
+                onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    appointment_type: e.target.value
+                }))}
+                required
+            />
 
             <div>
                 <label className="block ds-text-primary text-sm font-medium mb-2">

@@ -30,11 +30,7 @@ function ClockIcon() {
 }
 
 // Type labels in PT-PT
-const typeLabels: Record<string, string> = {
-    "tratamento": "Tratamento",
-    "consulta": "Consulta",
-    "retorno": "Retorno"
-};
+
 
 export default async function ClienteMarcacoes() {
     const supabase = await createClient();
@@ -94,7 +90,7 @@ export default async function ClienteMarcacoes() {
                                         </div>
                                         <div className="cliente-update-meta">
                                             <h3 className="cliente-update-title">
-                                                {typeLabels[appointment.appointment_type] || "Consulta"}
+                                                {appointment.appointment_type || "Consulta"}
                                             </h3>
                                             <p className="cliente-update-date">
                                                 {date.toLocaleDateString("pt-PT", {
@@ -156,7 +152,7 @@ export default async function ClienteMarcacoes() {
                                         </div>
                                         <div className="cliente-update-meta">
                                             <h3 className="cliente-update-title">
-                                                {typeLabels[appointment.appointment_type] || "Consulta"}
+                                                {appointment.appointment_type || "Consulta"}
                                             </h3>
                                             <p className="cliente-update-date">
                                                 {date.toLocaleDateString("pt-PT", {
