@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button, Card, Input, TextArea, PageHeader, Icon } from "@/components/ui";
-import { createClientAction } from "../actions";
+import { useCreateClient } from "@/lib/queries";
 
 type Credentials = {
     email: string;
@@ -11,23 +11,19 @@ type Credentials = {
 };
 
 export default function NovoCliente() {
-    const [error, setError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
     const [credentials, setCredentials] = useState<Credentials | null>(null);
     const [copied, setCopied] = useState<string | null>(null);
 
+    const createClient = useCreateClient();
+
     async function handleSubmit(formData: FormData) {
-        setIsLoading(true);
-        setError(null);
-
-        const result = await createClientAction(formData);
-
-        if (result?.error) {
-            setError(result.error);
-            setIsLoading(false);
-        } else if (result?.success && result?.credentials) {
-            setCredentials(result.credentials);
-            setIsLoading(false);
+        try {
+            const result = await createClient.mutateAsync(formData);
+            if (result?.success && result?.credentials) {
+                setCredentials(result.credentials);
+            }
+        } catch {
+            // Error is handled by mutation state
         }
     }
 
@@ -138,7 +134,9 @@ export default function NovoCliente() {
                         placeholder="Notas internas sobre este cliente..."
                     />
 
-                    {error && <div className="ds-alert-error">{error}</div>}
+                    {createClient.error && (
+                        <div className="ds-alert-error">{createClient.error.message}</div>
+                    )}
 
                     <div className="flex gap-4 pt-4">
                         <Link href="/admin/clientes" className="flex-1">
@@ -146,7 +144,7 @@ export default function NovoCliente() {
                                 Cancelar
                             </Button>
                         </Link>
-                        <Button fullWidth type="submit" isLoading={isLoading} className="flex-1">
+                        <Button fullWidth type="submit" isLoading={createClient.isPending} className="flex-1">
                             Criar cliente
                         </Button>
                     </div>

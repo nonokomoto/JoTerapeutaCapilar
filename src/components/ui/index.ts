@@ -50,3 +50,6 @@ export type { EmptyStateProps } from "./EmptyState";
 // Layout Components
 export { PageHeader, SectionHeader } from "./PageHeader";
 export type { PageHeaderProps, SectionHeaderProps } from "./PageHeader";
+
+// Navigation Components
+export { NavigationProgress } from "./NavigationProgress";

@@ -13,8 +13,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
                         staleTime: 5 * 60 * 1000,
                         // Cache is garbage collected after 30 minutes
                         gcTime: 30 * 60 * 1000,
-                        // Refetch when window regains focus
-                        refetchOnWindowFocus: true,
+                        // Disable refetch on window focus (mobile UX - app switching)
+                        refetchOnWindowFocus: false,
+                        // Disable refetch on network reconnect
+                        refetchOnReconnect: false,
                         // Don't retry on error by default
                         retry: 1,
                     },

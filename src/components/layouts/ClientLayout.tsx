@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense } from "react";
 import { usePathname } from "next/navigation";
-import { Avatar } from "@/components/ui";
+import { Avatar, NavigationProgress } from "@/components/ui";
 import type { Profile } from "@/types/database";
 
 // Custom SVG icons with active state support
@@ -115,6 +116,11 @@ export function ClientLayout({ children, profile }: ClientLayoutProps) {
 
     return (
         <div className="cliente-layout-container">
+            {/* Navigation Progress Bar */}
+            <Suspense fallback={null}>
+                <NavigationProgress />
+            </Suspense>
+
             {/* Desktop Sidebar */}
             <aside className="cliente-sidebar">
                 <div className="cliente-sidebar-logo">

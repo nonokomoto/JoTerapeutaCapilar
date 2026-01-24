@@ -75,12 +75,13 @@ interface AdminStatsProps {
 
 export function AdminStats({ initialStats }: AdminStatsProps) {
     // Pass initialData to hook - cache is populated immediately, no loading state
-    const { data: stats } = useAdminStats(initialStats);
+    const { data: stats, isPending } = useAdminStats(initialStats);
 
     // stats will always have data (either from cache or initialData)
     const displayStats = stats || initialStats;
 
-    if (!displayStats) {
+    // Only show skeleton when there's truly no data (isPending + no cache/initialData)
+    if (isPending && !displayStats) {
         return <StatsSkeleton />;
     }
 
@@ -121,12 +122,13 @@ interface RecentClientsListProps {
 
 export function RecentClientsList({ initialClients }: RecentClientsListProps) {
     // Pass initialData to hook - cache is populated immediately, no loading state
-    const { data: clients } = useRecentClients(5, initialClients);
+    const { data: clients, isPending } = useRecentClients(5, initialClients);
 
     // clients will always have data (either from cache or initialData)
     const displayClients = clients || initialClients;
 
-    if (!displayClients) {
+    // Only show skeleton when there's truly no data (isPending + no cache/initialData)
+    if (isPending && !displayClients) {
         return <ClientsSkeleton />;
     }
 

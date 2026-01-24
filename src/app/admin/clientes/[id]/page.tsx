@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { Icon, PageHeader, EmptyState, Avatar } from "@/components/ui";
 import { CreateUpdateModal } from "./CreateUpdateModal";
 import { ResetPasswordButton } from "./ResetPasswordButton";
+import { EditClientModal } from "./EditClientModal";
+import { DeleteClientButton } from "./DeleteClientButton";
 
 export default async function ClienteDetalhe({
     params,
@@ -67,6 +69,22 @@ export default async function ClienteDetalhe({
                             </span>
                         </div>
                     </div>
+                </div>
+                <div className="flex gap-2">
+                    <EditClientModal
+                        client={{
+                            id: client.id,
+                            name: client.name,
+                            email: client.email,
+                            phone: client.phone,
+                            notes: client.notes,
+                        }}
+                    />
+                    <DeleteClientButton
+                        clientId={client.id}
+                        clientName={client.name}
+                        updateCount={updates?.length || 0}
+                    />
                 </div>
             </div>
 

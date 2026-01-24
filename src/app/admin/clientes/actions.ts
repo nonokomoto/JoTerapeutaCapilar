@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -217,5 +216,178 @@ export async function updateClientNotesAction(formData: FormData) {
     }
 
     revalidatePath(`/admin/clientes/${clientId}`);
+    return { success: true };
+}
+
+// Update client profile (name, email, phone, notes)
+export async function updateClientAction(formData: FormData) {
+    const supabase = await createClient();
+    const adminClient = createAdminClient();
+
+    // Verify current user is admin
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return { error: "Não autorizado" };
+    }
+
+    const { data: adminProfile } = await adminClient
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+    if (adminProfile?.role !== "admin") {
+        return { error: "Apenas administradores podem editar clientes" };
+    }
+
+    const clientId = formData.get("client_id") as string;
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const phone = formData.get("phone") as string;
+    const notes = formData.get("notes") as string;
+
+    // Get current client data
+    const { data: currentClient } = await adminClient
+        .from("profiles")
+        .select("email")
+        .eq("id", clientId)
+        .single();
+
+    if (!currentClient) {
+        return { error: "Cliente não encontrado" };
+    }
+
+    // If email changed, update in auth
+    if (email !== currentClient.email) {
+        const { error: authError } = await adminClient.auth.admin.updateUserById(
+            clientId,
+            { email }
+        );
+
+        if (authError) {
+            if (authError.message.includes("already been registered") || authError.message.includes("already exists")) {
+                return { error: "Este email já está em uso por outro utilizador" };
+            }
+            return { error: `Erro ao atualizar email: ${authError.message}` };
+        }
+    }
+
+    // Update profile in database
+    const { error: profileError } = await adminClient
+        .from("profiles")
+        .update({
+            name,
+            email,
+            phone: phone || null,
+            notes: notes || null,
+        })
+        .eq("id", clientId);
+
+    if (profileError) {
+        return { error: "Erro ao atualizar perfil" };
+    }
+
+    revalidatePath(`/admin/clientes/${clientId}`);
+    revalidatePath("/admin/clientes");
+    return { success: true };
+}
+
+// Delete client (and all related data)
+export async function deleteClientAction(clientId: string) {
+    const supabase = await createClient();
+    const adminClient = createAdminClient();
+
+    // Verify current user is admin
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return { error: "Não autorizado" };
+    }
+
+    const { data: adminProfile } = await adminClient
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+    if (adminProfile?.role !== "admin") {
+        return { error: "Apenas administradores podem eliminar clientes" };
+    }
+
+    // Verify target is a client and not an admin
+    const { data: clientProfile } = await adminClient
+        .from("profiles")
+        .select("role, name")
+        .eq("id", clientId)
+        .single();
+
+    if (!clientProfile) {
+        return { error: "Cliente não encontrado" };
+    }
+
+    if (clientProfile.role !== "client") {
+        return { error: "Não é possível eliminar administradores" };
+    }
+
+    // Get all updates for this client to delete storage files
+    const { data: updates } = await adminClient
+        .from("client_updates")
+        .select("id, attachments(file_url)")
+        .eq("client_id", clientId);
+
+    // Delete files from storage
+    if (updates) {
+        for (const update of updates) {
+            if (update.attachments && Array.isArray(update.attachments)) {
+                for (const att of update.attachments) {
+                    // Extract path from URL
+                    const url = new URL(att.file_url);
+                    const pathParts = url.pathname.split("/storage/v1/object/public/attachments/");
+                    if (pathParts[1]) {
+                        await adminClient.storage
+                            .from("attachments")
+                            .remove([pathParts[1]]);
+                    }
+                }
+            }
+        }
+    }
+
+    // Delete attachments (cascade should handle this, but being explicit)
+    if (updates) {
+        const updateIds = updates.map(u => u.id);
+        if (updateIds.length > 0) {
+            await adminClient
+                .from("attachments")
+                .delete()
+                .in("update_id", updateIds);
+        }
+    }
+
+    // Delete updates
+    await adminClient
+        .from("client_updates")
+        .delete()
+        .eq("client_id", clientId);
+
+    // Delete profile
+    const { error: profileError } = await adminClient
+        .from("profiles")
+        .delete()
+        .eq("id", clientId);
+
+    if (profileError) {
+        return { error: "Erro ao eliminar perfil" };
+    }
+
+    // Delete from auth
+    const { error: authError } = await adminClient.auth.admin.deleteUser(clientId);
+
+    if (authError) {
+        console.error("Error deleting auth user:", authError);
+        // Profile already deleted, so we continue
+    }
+
+    revalidatePath("/admin/clientes");
+    revalidatePath("/admin");
     return { success: true };
 }

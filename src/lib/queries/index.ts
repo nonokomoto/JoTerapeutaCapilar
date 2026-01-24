@@ -2,7 +2,7 @@
 export { queryKeys } from "./keys";
 
 // Admin Hooks
-export { useAdminStats, useRecentClients } from "./admin";
+export { useAdminStats, useRecentClients, useCreateClient, useDeleteClient } from "./admin";
 
 // Client Hooks
 export { useClientProfile, useClientUpdates, useRecentPosts } from "./client";

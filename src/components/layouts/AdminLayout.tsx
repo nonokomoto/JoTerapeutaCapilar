@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useCallback, useMemo } from "react";
-import { Avatar, Icon } from "@/components/ui";
+import { Avatar, Icon, NavigationProgress } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types/database";
 
@@ -223,6 +224,11 @@ export function AdminLayout({ children, profile }: AdminLayoutProps) {
 
     return (
         <div className="min-h-screen flex bg-white">
+            {/* Navigation Progress Bar */}
+            <Suspense fallback={null}>
+                <NavigationProgress />
+            </Suspense>
+
             {/* Desktop Sidebar */}
             <aside className={`admin-sidebar ${collapsed ? "collapsed" : ""}`}>
                 <SidebarContent {...sidebarProps} />

@@ -59,7 +59,8 @@ export function useClientProfile(initialData?: ClientProfile) {
         queryKey: queryKeys.client.profile(),
         queryFn: fetchClientProfile,
         initialData,
-        staleTime: 10 * 60 * 1000, // 10 minutes - profile changes rarely
+        staleTime: 15 * 60 * 1000, // 15 minutes - profile changes rarely
+        placeholderData: (previousData) => previousData, // Show stale data during refetch
     });
 }
 
@@ -73,7 +74,8 @@ export function useClientUpdates(limit = 3, initialData?: ClientUpdatesResponse)
         queryKey: queryKeys.client.updates(undefined, limit),
         queryFn: () => fetchClientUpdates(limit),
         initialData,
-        staleTime: 2 * 60 * 1000, // 2 minutes - updates are more dynamic
+        staleTime: 5 * 60 * 1000, // 5 minutes - updates are dynamic but not that frequent
+        placeholderData: (previousData) => previousData, // Show stale data during refetch
     });
 }
 
@@ -87,6 +89,7 @@ export function useRecentPosts(limit = 6, initialData?: Post[]) {
         queryKey: queryKeys.posts.list(limit),
         queryFn: () => fetchRecentPosts(limit),
         initialData,
-        staleTime: 5 * 60 * 1000, // 5 minutes
+        staleTime: 10 * 60 * 1000, // 10 minutes
+        placeholderData: (previousData) => previousData, // Show stale data during refetch
     });
 }

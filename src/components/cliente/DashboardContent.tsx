@@ -70,11 +70,12 @@ interface TreatmentsSectionProps {
 export function TreatmentsSection({ initialUpdates, initialCount }: TreatmentsSectionProps) {
     // Pass initialData to hook - cache is populated immediately, no loading state
     const initialData = initialUpdates ? { updates: initialUpdates, count: initialCount || 0 } : undefined;
-    const { data } = useClientUpdates(3, initialData);
+    const { data, isPending } = useClientUpdates(3, initialData);
 
     const updates = data?.updates || initialUpdates;
 
-    if (!updates) {
+    // Only show skeleton when there's truly no data (isPending + no cache/initialData)
+    if (isPending && !updates) {
         return (
             <section className="mb-10">
                 <div className="cliente-feed-header">
@@ -150,11 +151,12 @@ interface NewsSectionProps {
 
 export function NewsSection({ initialPosts }: NewsSectionProps) {
     // Pass initialData to hook - cache is populated immediately, no loading state
-    const { data: posts } = useRecentPosts(6, initialPosts);
+    const { data: posts, isPending } = useRecentPosts(6, initialPosts);
 
     const displayPosts = posts || initialPosts;
 
-    if (!displayPosts) {
+    // Only show skeleton when there's truly no data (isPending + no cache/initialData)
+    if (isPending && !displayPosts) {
         return (
             <section>
                 <div className="cliente-feed-header">
