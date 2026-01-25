@@ -103,7 +103,10 @@ export type Database = {
       client_updates: {
         Row: {
           admin_id: string
+          category: string | null
           client_id: string
+          client_liked: boolean | null
+          client_read_at: string | null
           content: string
           created_at: string | null
           id: string
@@ -111,7 +114,10 @@ export type Database = {
         }
         Insert: {
           admin_id: string
+          category?: string | null
           client_id: string
+          client_liked?: boolean | null
+          client_read_at?: string | null
           content: string
           created_at?: string | null
           id?: string
@@ -119,7 +125,10 @@ export type Database = {
         }
         Update: {
           admin_id?: string
+          category?: string | null
           client_id?: string
+          client_liked?: boolean | null
+          client_read_at?: string | null
           content?: string
           created_at?: string | null
           id?: string

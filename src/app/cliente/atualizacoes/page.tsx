@@ -1,4 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import { getUpdateReactions } from "@/app/cliente/actions";
+import { DateGroupHeader } from "@/components/ui";
+import { groupUpdatesByMonth, getUniqueYears, filterUpdates } from "@/lib/utils/grouping";
+import { UpdateFilters } from "@/components/features/UpdateFilters";
+import { UpdateCard } from "@/components/features/UpdateCard";
+import { UpdateCategory } from "@/types/database";
 
 // Icons
 function ClipboardIcon() {
@@ -11,27 +17,14 @@ function ClipboardIcon() {
     );
 }
 
-function ImageIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <polyline points="21 15 16 10 5 21" />
-        </svg>
-    );
-}
-
-function FileIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-        </svg>
-    );
-}
-
-export default async function ClienteAtualizacoes() {
+export default async function ClienteAtualizacoes({
+    searchParams,
+}: {
+    searchParams: Promise<{ categoria?: string; ano?: string; open?: string }>;
+}) {
     const supabase = await createClient();
+    const params = await searchParams;
+    const openUpdateId = params.open;
 
     const {
         data: { user },
@@ -42,14 +35,22 @@ export default async function ClienteAtualizacoes() {
         .select(
             `
             id,
+            client_id,
+            admin_id,
             title,
             content,
+            category,
+            client_liked,
+            client_read_at,
             created_at,
             attachments (
                 id,
+                update_id,
                 file_url,
                 file_name,
-                file_type
+                file_type,
+                file_size,
+                created_at
             )
         `
         )
@@ -61,64 +62,88 @@ export default async function ClienteAtualizacoes() {
         .not("title", "ilike", "%Visita realizada%")
         .order("created_at", { ascending: false });
 
+    // Extract unique categories and years for filters
+    const uniqueCategories = updates
+        ? Array.from(new Set(updates.map(u => u.category)))
+        : [];
+    const uniqueYears = updates ? getUniqueYears(updates) : [];
+
+    // Apply filters
+    const filteredUpdates = updates
+        ? filterUpdates(updates, {
+            category: params.categoria,
+            year: params.ano
+        })
+        : [];
+
+    // Group filtered updates by month
+    const groupedUpdates = filteredUpdates.length > 0 ? groupUpdatesByMonth(filteredUpdates) : [];
+
+    // Count for display
+    const totalCount = updates?.length || 0;
+    const filteredCount = filteredUpdates.length;
+    const hasFilters = params.categoria || params.ano;
+
+    // Calculate unread count
+    const unreadCount = filteredUpdates.filter(u => !u.client_read_at).length;
+
+    // Fetch reactions for all updates
+    const updateReactionsMap = new Map();
+    await Promise.all(
+        filteredUpdates.map(async (update) => {
+            const reactions = await getUpdateReactions(update.id);
+            updateReactionsMap.set(update.id, reactions);
+        })
+    );
+
     return (
         <div className="cliente-dashboard-content cliente-page-container">
             {/* Page Header */}
             <div className="cliente-page-header">
                 <h1 className="cliente-page-title">As minhas atualizações</h1>
-                <p className="cliente-page-subtitle">Acompanhe a sua evolução capilar</p>
+                {unreadCount > 0 ? (
+                    <p className="cliente-page-subtitle">
+                        {unreadCount} {unreadCount === 1 ? 'nova atualização' : 'novas atualizações'}
+                    </p>
+                ) : (
+                    <p className="cliente-page-subtitle">Acompanhe a sua evolução capilar</p>
+                )}
             </div>
 
-            {/* Updates List */}
-            {updates && updates.length > 0 ? (
-                <div className="cliente-updates-list">
-                    {updates.map((update, index) => (
-                        <article
-                            key={update.id}
-                            className="cliente-update-card"
-                            style={{ animationDelay: `${index * 80}ms` }}
-                        >
-                            <div className="cliente-update-header">
-                                <div className="cliente-update-icon">
-                                    <ClipboardIcon />
-                                </div>
-                                <div className="cliente-update-meta">
-                                    <h3 className="cliente-update-title">{update.title}</h3>
-                                    <p className="cliente-update-date">
-                                        {new Date(update.created_at).toLocaleDateString("pt-PT", {
-                                            day: "numeric",
-                                            month: "long",
-                                            year: "numeric",
-                                        })}
-                                    </p>
-                                </div>
-                            </div>
+            {/* Filters */}
+            {totalCount > 0 && (
+                <UpdateFilters
+                    categories={uniqueCategories as UpdateCategory[]}
+                    years={uniqueYears}
+                />
+            )}
 
-                            <div className="cliente-update-content">
-                                {update.content}
-                            </div>
+            {/* Results count */}
+            {hasFilters && totalCount > 0 && (
+                <div className="filter-results-count">
+                    A mostrar {filteredCount} de {totalCount} {filteredCount === 1 ? 'atualização' : 'atualizações'}
+                </div>
+            )}
 
-                            {/* Attachments */}
-                            {update.attachments && update.attachments.length > 0 && (
-                                <div className="cliente-update-attachments">
-                                    <p className="cliente-attachments-label">Anexos</p>
-                                    <div className="cliente-attachments-grid">
-                                        {update.attachments.map((attachment) => (
-                                            <a
-                                                key={attachment.id}
-                                                href={attachment.file_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="cliente-attachment-link"
-                                            >
-                                                {attachment.file_type === "image" ? <ImageIcon /> : <FileIcon />}
-                                                <span className="truncate">{attachment.file_name}</span>
-                                            </a>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </article>
+            {/* Updates List - Grouped by Month */}
+            {groupedUpdates.length > 0 ? (
+                <div>
+                    {groupedUpdates.map(([monthLabel, monthUpdates]) => (
+                        <div key={monthLabel}>
+                            <DateGroupHeader label={monthLabel} count={monthUpdates.length} />
+
+                            <div className="date-group-updates">
+                                {monthUpdates.map((update, index) => (
+                                    <UpdateCard
+                                        key={update.id}
+                                        update={update}
+                                        reactions={updateReactionsMap.get(update.id) || []}
+                                        index={index}
+                                        defaultExpanded={update.id === openUpdateId}
+                                    />
+                                ))}
+                            </div>
+                        </div>
                     ))}
                 </div>
             ) : (

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { Avatar, Icon, NavigationProgress } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types/database";
@@ -173,13 +173,18 @@ interface AdminLayoutProps {
     profile: Profile;
 }
 
-// Custom hook for localStorage with SSR support
+// Custom hook for localStorage with SSR support - avoids hydration mismatch
 function useLocalStorageState(key: string, defaultValue: boolean): [boolean, (value: boolean) => void] {
-    const [state, setState] = useState(() => {
-        if (typeof window === "undefined") return defaultValue;
+    // Always start with defaultValue to match server render
+    const [state, setState] = useState(defaultValue);
+
+    // Sync with localStorage after hydration
+    useEffect(() => {
         const saved = localStorage.getItem(key);
-        return saved !== null ? JSON.parse(saved) : defaultValue;
-    });
+        if (saved !== null) {
+            setState(JSON.parse(saved));
+        }
+    }, [key]);
 
     const setStateWithStorage = useCallback((value: boolean) => {
         setState(value);

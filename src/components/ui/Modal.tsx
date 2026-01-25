@@ -8,6 +8,7 @@ export interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
     title?: string;
+    subtitle?: string;
     children: ReactNode;
     size?: "sm" | "md" | "lg" | "xl" | "full";
     showCloseButton?: boolean;
@@ -20,8 +21,8 @@ export interface ModalProps {
 const sizeClasses = {
     sm: "max-w-sm",
     md: "max-w-md",
-    lg: "max-w-lg",
-    xl: "max-w-xl",
+    lg: "max-w-2xl",
+    xl: "max-w-3xl",
     full: "max-w-4xl",
 };
 
@@ -29,6 +30,7 @@ export function Modal({
     isOpen,
     onClose,
     title,
+    subtitle,
     children,
     size = "md",
     showCloseButton = true,
@@ -93,11 +95,18 @@ export function Modal({
                 {/* Header */}
                 {(title || showCloseButton) && (
                     <div className="modal-header">
-                        {title && (
-                            <h2 id="modal-title" className="modal-title">
-                                {title}
-                            </h2>
-                        )}
+                        <div className="flex-1">
+                            {title && (
+                                <h2 id="modal-title" className="modal-title">
+                                    {title}
+                                </h2>
+                            )}
+                            {subtitle && (
+                                <p className="text-sm ds-text-muted mt-1">
+                                    {subtitle}
+                                </p>
+                            )}
+                        </div>
                         {showCloseButton && (
                             <button
                                 type="button"
@@ -105,7 +114,7 @@ export function Modal({
                                 className="modal-close-btn"
                                 aria-label="Fechar"
                             >
-                                <Icon name="x" size="md" />
+                                <Icon name="x" size="sm" />
                             </button>
                         )}
                     </div>

@@ -4,19 +4,23 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: string;
     error?: string;
     hint?: string;
+    containerClassName?: string;
+    labelClassName?: string;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-    ({ label, error, hint, className = "", id, ...props }, ref) => {
+    ({ label, error, hint, className = "", containerClassName = "", labelClassName, id, ...props }, ref) => {
         const inputId = id || props.name;
         const hasError = !!error;
 
+        const defaultLabelClass = `block text-sm font-medium mb-2 ${hasError ? "ds-text-error" : "ds-text-muted"}`;
+
         return (
-            <div className="w-full">
+            <div className={`w-full ${containerClassName}`}>
                 {label && (
                     <label
                         htmlFor={inputId}
-                        className={`block text-sm font-medium mb-2 ${hasError ? "ds-text-error" : "ds-text-secondary"}`}
+                        className={labelClassName || defaultLabelClass}
                     >
                         {label}
                     </label>

@@ -141,7 +141,7 @@ export default async function AdminDashboard() {
                 {/* Recent Clients Section - Now reactive */}
                 <section className="admin-section">
                     <div className="admin-section-header-row">
-                        <h2 className="section-header">
+                        <h2 className="section-label">
                             Clientes Recentes
                         </h2>
                         <Link
@@ -162,7 +162,7 @@ export default async function AdminDashboard() {
 
                 {/* Quick Actions Section */}
                 <section className="admin-section">
-                    <h2 className="section-header">
+                    <h2 className="section-label">
                         Ações Rápidas
                     </h2>
 

@@ -3,6 +3,32 @@
 export type UserRole = "admin" | "client";
 export type ClientStatus = "com_marcacao" | "sem_marcacao";
 
+// Update category types with semantic color mapping
+export type UpdateCategory =
+  | 'evolucao'      // Verde (success), TrendingUp icon
+  | 'rotina'        // Azul (info), Calendar icon
+  | 'recomendacao'  // Rose-gold (accent), Lightbulb icon
+  | 'agendamento'   // Amarelo (warning), Clock icon
+  | 'outro';        // Cinza (default), FileText icon
+
+// Reaction types for client updates
+export type ReactionType = 'like' | 'celebrate' | 'helpful' | 'question';
+
+// Emoji mapping for reactions
+export const REACTION_EMOJI: Record<ReactionType, string> = {
+  like: '❤️',
+  celebrate: '🎉',
+  helpful: '💡',
+  question: '❓'
+};
+
+export const REACTION_LABEL: Record<ReactionType, string> = {
+  like: 'Gostei',
+  celebrate: 'Parabéns',
+  helpful: 'Útil',
+  question: 'Dúvida'
+};
+
 export interface Profile {
     id: string;
     role: UserRole;
@@ -14,6 +40,7 @@ export interface Profile {
     first_visit_date: string | null;
     last_appointment_date: string | null;
     next_appointment_date: string | null;
+    email_notifications: boolean; // Whether user wants email notifications
     created_at: string;
     updated_at: string;
 }
@@ -35,6 +62,9 @@ export interface ClientUpdate {
     admin_id: string;
     title: string;
     content: string;
+    category: UpdateCategory; // Required field with default 'outro'
+    client_read_at?: string | null;
+    client_liked?: boolean;
     created_at: string;
     // Joined data
     attachments?: Attachment[];
@@ -51,6 +81,20 @@ export interface Attachment {
     created_at: string;
 }
 
+export interface UpdateReaction {
+    id: string;
+    update_id: string;
+    user_id: string;
+    reaction: ReactionType;
+    created_at: string;
+}
+
+export interface ReactionCount {
+    reaction: ReactionType;
+    count: number;
+    user_reacted: boolean;
+}
+
 export interface Post {
     id: string;
     admin_id: string;
@@ -62,6 +106,23 @@ export interface Post {
     updated_at: string;
     // Joined data
     admin?: Pick<Profile, "name" | "avatar_url">;
+}
+
+export interface BeforeAfterComparison {
+    id: string;
+    client_id: string;
+    admin_id: string;
+    before_image_url: string;
+    before_date: string;
+    before_label: string;
+    after_image_url: string;
+    after_date: string;
+    after_label: string;
+    title: string | null;
+    description: string | null;
+    is_featured: boolean;
+    created_at: string;
+    updated_at: string;
 }
 
 // Database schema type for Supabase client

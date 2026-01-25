@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { ProfileForm } from "./ProfileForm";
+import { NotificationSettings } from "./NotificationSettings";
 
 export default async function ClientePerfil() {
     const supabase = await createClient();
@@ -26,6 +27,7 @@ export default async function ClientePerfil() {
             </div>
 
             <div className="cliente-profile-layout">
+                <NotificationSettings emailNotifications={profile.email_notifications} />
                 <ProfileForm profile={profile} />
             </div>
         </div>

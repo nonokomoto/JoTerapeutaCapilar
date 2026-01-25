@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card } from "@/components/ui";
+import { Button, Icon } from "@/components/ui";
 import { resetClientPasswordAction } from "../actions";
 
 type Props = {
@@ -43,21 +43,22 @@ export function ResetPasswordButton({ clientId, clientEmail }: Props) {
     // Show password modal
     if (password) {
         return (
-            <Card variant="outlined">
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-semibold">
-                            Nova palavra-passe gerada
-                        </h3>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleClose}
-                        >
-                            Fechar
-                        </Button>
+            <div className="sidebar-widget">
+                <div className="sidebar-widget-header">
+                    <div className="sidebar-widget-icon">
+                        <Icon name="key" size={16} />
                     </div>
+                    <h3 className="sidebar-widget-title">Nova palavra-passe</h3>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleClose}
+                    >
+                        Fechar
+                    </Button>
+                </div>
 
+                <div className="space-y-3">
                     <div className="ds-panel">
                         <div className="flex justify-between items-center mb-1">
                             <span className="text-xs ds-text-muted">
@@ -98,16 +99,20 @@ export function ResetPasswordButton({ clientId, clientEmail }: Props) {
                         {copied === "all" ? "Copiado!" : "Copiar tudo"}
                     </Button>
                 </div>
-            </Card>
+            </div>
         );
     }
 
     return (
-        <Card variant="outlined">
-            <h3 className="text-sm font-semibold mb-2">
-                Dados de acesso
-            </h3>
-            <p className="text-sm ds-text-muted mb-3">
+        <div className="sidebar-widget">
+            <div className="sidebar-widget-header">
+                <div className="sidebar-widget-icon">
+                    <Icon name="key" size={16} />
+                </div>
+                <h3 className="sidebar-widget-title">Dados de acesso</h3>
+            </div>
+
+            <p className="sidebar-widget-description">
                 Gere uma nova palavra-passe para o cliente.
             </p>
 
@@ -125,6 +130,6 @@ export function ResetPasswordButton({ clientId, clientEmail }: Props) {
             >
                 Gerar nova palavra-passe
             </Button>
-        </Card>
+        </div>
     );
 }

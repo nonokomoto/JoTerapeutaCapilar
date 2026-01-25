@@ -1,12 +1,16 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Icon, PageHeader, EmptyState, Avatar, ClientStatusBadge } from "@/components/ui";
+import { getUpdateReactions } from "@/app/cliente/actions";
+import { Icon, PageHeader, EmptyState, Avatar, ClientStatusBadge, DateGroupHeader } from "@/components/ui";
 import { calculateClientStatus } from "@/lib/utils/clientStatus";
+import { groupUpdatesByMonth } from "@/lib/utils/grouping";
 import { AppointmentsSection } from "./AppointmentsSection";
 import { CreateUpdateModal } from "./CreateUpdateModal";
+import { CreateBeforeAfterModal } from "./CreateBeforeAfterModal";
 import { ResetPasswordButton } from "./ResetPasswordButton";
 import { EditClientModal } from "./EditClientModal";
 import { DeleteClientButton } from "./DeleteClientButton";
+import { UpdateCard } from "./UpdateCard";
 
 export default async function ClienteDetalhe({
     params,
@@ -36,14 +40,31 @@ export default async function ClienteDetalhe({
         .select(
             `
             id,
+            client_id,
+            admin_id,
             title,
             content,
+            category,
             created_at,
-            attachments (id, file_url, file_name, file_type)
+            attachments (id, file_url, file_name, file_type, file_size, update_id, created_at)
         `
         )
         .eq("client_id", id)
         .order("created_at", { ascending: false });
+
+    // Group updates by month
+    const groupedUpdates = updates ? groupUpdatesByMonth(updates) : [];
+
+    // Fetch reactions for all updates
+    const updateReactionsMap = new Map();
+    if (updates) {
+        await Promise.all(
+            updates.map(async (update) => {
+                const reactions = await getUpdateReactions(update.id);
+                updateReactionsMap.set(update.id, reactions);
+            })
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -155,92 +176,33 @@ export default async function ClienteDetalhe({
                 <div className="lg:col-span-2">
                     {/* Updates List */}
                     <div className="client-updates-section">
-                        {/* Section Header with Add Button */}
+                        {/* Section Header with Add Buttons */}
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="section-header">Histórico de Atualizações</h3>
-                            <CreateUpdateModal clientId={client.id} clientName={client.name} />
+                            <h3 className="section-label">Histórico de Atualizações</h3>
+                            <div className="flex gap-2">
+                                <CreateBeforeAfterModal clientId={client.id} />
+                                <CreateUpdateModal clientId={client.id} clientName={client.name} />
+                            </div>
                         </div>
 
-                        {updates && updates.length > 0 ? (
-                            <div className="space-y-4">
-                                {updates.map((update) => {
-                                    const getUpdateStyle = (title: string) => {
-                                        const t = title.toLowerCase();
-                                        if (t.includes("agendamento confirmado")) {
-                                            return {
-                                                icon: "calendar" as const,
-                                                colorClass: "text-[var(--color-info)]",
-                                                bgClass: "bg-[var(--color-info-bg)]"
-                                            };
-                                        }
-                                        if (t.includes("consulta realizada")) {
-                                            return {
-                                                icon: "check" as const,
-                                                colorClass: "text-[var(--color-success)]",
-                                                bgClass: "bg-[var(--color-success-bg)]"
-                                            };
-                                        }
-                                        if (t.includes("agendamento cancelado")) {
-                                            return {
-                                                icon: "x" as const,
-                                                colorClass: "text-[var(--color-error)]",
-                                                bgClass: "bg-[var(--color-error-bg)]"
-                                            };
-                                        }
-                                        return null;
-                                    };
+                        {groupedUpdates.length > 0 ? (
+                            <div>
+                                {groupedUpdates.map(([monthLabel, monthUpdates]) => (
+                                    <div key={monthLabel}>
+                                        <DateGroupHeader label={monthLabel} count={monthUpdates.length} />
 
-                                    const style = getUpdateStyle(update.title);
-
-                                    return (
-                                        <div key={update.id} className="client-update-card">
-                                            <div className="flex items-start gap-3 mb-3">
-                                                {style && (
-                                                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${style.bgClass} ${style.colorClass} shrink-0`}>
-                                                        <Icon name={style.icon} size={18} />
-                                                    </div>
-                                                )}
-                                                <div>
-                                                    <h4 className="client-update-title mb-0">{update.title}</h4>
-                                                    <div className="client-update-date opacity-70">
-                                                        {new Date(update.created_at).toLocaleDateString(
-                                                            "pt-PT",
-                                                            {
-                                                                day: "numeric",
-                                                                month: "long",
-                                                                year: "numeric",
-                                                            }
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <p className="client-update-content">{update.content}</p>
-
-                                            {update.attachments && update.attachments.length > 0 && (
-                                                <div className="client-update-attachments">
-                                                    {update.attachments.map((att) => (
-                                                        <a
-                                                            key={att.id}
-                                                            href={att.file_url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="client-attachment-badge"
-                                                        >
-                                                            <Icon
-                                                                name={att.file_type === "image" ? "image" : "file-text"}
-                                                                size={14}
-                                                            />
-                                                            <span className="truncate max-w-[120px]">
-                                                                {att.file_name}
-                                                            </span>
-                                                        </a>
-                                                    ))}
-                                                </div>
-                                            )}
+                                        <div className="date-group-updates">
+                                            {monthUpdates.map((update) => (
+                                                <UpdateCard
+                                                    key={update.id}
+                                                    update={update}
+                                                    clientId={client.id}
+                                                    reactions={updateReactionsMap.get(update.id) || []}
+                                                />
+                                            ))}
                                         </div>
-                                    );
-                                })}
+                                    </div>
+                                ))}
                             </div>
                         ) : (
                             <EmptyState

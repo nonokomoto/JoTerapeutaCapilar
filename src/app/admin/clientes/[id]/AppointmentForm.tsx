@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Input } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { Appointment } from "@/types/database";
+import { CalendarClock, Tag, FileText, CheckCircle, Save, Plus } from "lucide-react";
 
 interface AppointmentFormProps {
     clientId: string;
@@ -73,59 +74,77 @@ export function AppointmentForm({
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-                label="Data e Hora"
-                type="datetime-local"
-                value={formData.appointment_date}
-                onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    appointment_date: e.target.value
-                }))}
-                required
-            />
+            <div className="flex flex-col gap-1.5">
+                <label htmlFor="apt-datetime" className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                    <CalendarClock size={14} style={{ color: '#3B82F6' }} />
+                    Data e Hora *
+                </label>
+                <input
+                    id="apt-datetime"
+                    type="datetime-local"
+                    value={formData.appointment_date}
+                    onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        appointment_date: e.target.value
+                    }))}
+                    required
+                    className="input border border-gray-200"
+                />
+            </div>
 
-            <Input
-                label="Tipo de Marcação"
-                placeholder="Ex: Terapia de Ozono, Avaliação Capilar..."
-                value={formData.appointment_type}
-                onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    appointment_type: e.target.value
-                }))}
-                required
-            />
+            <div className="flex flex-col gap-1.5">
+                <label htmlFor="apt-type" className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                    <Tag size={14} style={{ color: '#8B5CF6' }} />
+                    Tipo de Marcação *
+                </label>
+                <input
+                    id="apt-type"
+                    type="text"
+                    placeholder="Ex: Terapia de Ozono, Avaliação Capilar..."
+                    value={formData.appointment_type}
+                    onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        appointment_type: e.target.value
+                    }))}
+                    required
+                    className="input border border-gray-200"
+                />
+            </div>
 
-            <div>
-                <label className="block ds-text-primary text-sm font-medium mb-2">
+            <div className="flex flex-col gap-1.5">
+                <label htmlFor="apt-notes" className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                    <FileText size={14} style={{ color: '#10B981' }} />
                     Notas (opcional)
                 </label>
                 <textarea
+                    id="apt-notes"
                     value={formData.notes}
                     onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                     rows={3}
                     placeholder="Observações sobre esta marcação..."
-                    className="w-full px-3 py-2 ds-bg-secondary ds-text-primary rounded-lg ds-border-default focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+                    className="input border border-gray-200"
+                    style={{ resize: "vertical", minHeight: "80px" }}
                 />
             </div>
 
-            <div className="flex items-center gap-2">
+            <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600">
                 <input
                     type="checkbox"
                     id="completed"
                     checked={formData.completed}
                     onChange={(e) => setFormData(prev => ({ ...prev, completed: e.target.checked }))}
-                    className="w-4 h-4 rounded ds-border-default text-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]"
+                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
-                <label htmlFor="completed" className="ds-text-secondary text-sm">
-                    Marcar como realizada
-                </label>
-            </div>
+                <CheckCircle size={14} style={{ color: '#10B981' }} />
+                <span>Marcar como realizada</span>
+            </label>
 
-            <div className="flex gap-3 justify-end pt-4 border-t ds-border-subtle">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t ds-border-subtle">
                 <Button type="button" variant="secondary" onClick={onCancel}>
                     Cancelar
                 </Button>
                 <Button type="submit" isLoading={isLoading}>
+                    {appointment ? <Save size={16} /> : <Plus size={16} />}
                     {appointment ? 'Atualizar' : 'Criar Marcação'}
                 </Button>
             </div>

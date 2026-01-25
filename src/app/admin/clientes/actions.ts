@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendUpdateNotification } from "@/lib/email";
+import { UpdateCategory } from "@/types/database";
 
 // Create a new client (admin creates the account)
 export async function createClientAction(formData: FormData) {
@@ -87,6 +89,7 @@ export async function createUpdateAction(formData: FormData) {
     const clientId = formData.get("client_id") as string;
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
+    const category = (formData.get("category") as string) || "outro";
     const files = formData.getAll("files") as File[];
 
     const {
@@ -105,6 +108,7 @@ export async function createUpdateAction(formData: FormData) {
             admin_id: user.id,
             title,
             content,
+            category,
         })
         .select("id")
         .single();
@@ -158,6 +162,31 @@ export async function createUpdateAction(formData: FormData) {
                 file_size: file.size,
             });
         }
+    }
+
+    // Send email notification if client has notifications enabled
+    try {
+        const { data: client } = await adminClient
+            .from("profiles")
+            .select("email, name, email_notifications")
+            .eq("id", clientId)
+            .single();
+
+        if (client && client.email_notifications) {
+            const updateUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://app.joterapeutacapilar.com'}/cliente/atualizacoes`;
+
+            await sendUpdateNotification({
+                clientEmail: client.email,
+                clientName: client.name,
+                updateTitle: title,
+                updateContent: content,
+                category: category as UpdateCategory,
+                updateUrl,
+            });
+        }
+    } catch (emailError) {
+        // Log error but don't fail the update creation
+        console.error("Failed to send notification email:", emailError);
     }
 
     revalidatePath(`/admin/clientes/${clientId}`);
@@ -814,4 +843,478 @@ export async function getClientAppointments(clientId: string) {
     }
 
     return { success: true, data: data || [] };
+}
+
+/**
+ * Elimina uma atualização de cliente
+ */
+export async function deleteClientUpdateAction(updateId: string, clientId: string) {
+    const supabase = await createClient();
+    const adminClient = createAdminClient();
+
+    // Verify current user is admin
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return { error: "Não autorizado" };
+    }
+
+    // Get attachments to delete files
+    const { data: update } = await adminClient
+        .from("client_updates")
+        .select("id, attachments(file_url)")
+        .eq("id", updateId)
+        .single();
+
+    if (update && update.attachments) {
+        for (const att of update.attachments) {
+            // Extract path from URL
+            const url = new URL(att.file_url);
+            const pathParts = url.pathname.split("/storage/v1/object/public/attachments/");
+            if (pathParts[1]) {
+                await adminClient.storage
+                    .from("attachments")
+                    .remove([pathParts[1]]);
+            }
+        }
+    }
+
+    // Delete attachments (cascade via database usually, but safe to be explicit if not)
+    await adminClient
+        .from("attachments")
+        .delete()
+        .eq("update_id", updateId);
+
+    // Delete the update
+    const { error } = await supabase
+        .from("client_updates")
+        .delete()
+        .eq("id", updateId);
+
+    if (error) {
+        return { error: `Erro ao eliminar atualização: ${error.message}` };
+    }
+
+    revalidatePath(`/admin/clientes/${clientId}`);
+    return { success: true };
+}
+
+/**
+ * Atualiza uma atualização de cliente existente
+ */
+export async function updateClientUpdateAction(formData: FormData) {
+    const supabase = await createClient();
+    const adminClient = createAdminClient();
+
+    const updateId = formData.get("update_id") as string;
+    const clientId = formData.get("client_id") as string;
+    const title = formData.get("title") as string;
+    const content = formData.get("content") as string;
+    const category = (formData.get("category") as string) || "outro";
+    const files = formData.getAll("files") as File[];
+    const removedFileIds = formData.getAll("removed_files") as string[];
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return { error: "Não autorizado" };
+    }
+
+    // Update the record
+    const { error } = await supabase
+        .from("client_updates")
+        .update({
+            title,
+            content,
+            category,
+        })
+        .eq("id", updateId);
+
+    if (error) {
+        return { error: "Erro ao editar atualização" };
+    }
+
+    // Remove deleted files
+    if (removedFileIds.length > 0) {
+        // Get files to delete from storage
+        const { data: attachments } = await adminClient
+            .from("attachments")
+            .select("file_url")
+            .in("id", removedFileIds);
+
+        if (attachments) {
+            for (const att of attachments) {
+                const url = new URL(att.file_url);
+                const pathParts = url.pathname.split("/storage/v1/object/public/attachments/");
+                if (pathParts[1]) {
+                    await adminClient.storage.from("attachments").remove([pathParts[1]]);
+                }
+            }
+        }
+
+        await adminClient
+            .from("attachments")
+            .delete()
+            .in("id", removedFileIds);
+    }
+
+    // Upload new files
+    if (files && files.length > 0) {
+        for (const file of files) {
+            // Skip empty file inputs
+            if (!file || file.size === 0) continue;
+
+            const isImage = file.type.startsWith("image/");
+            const isPdf = file.type === "application/pdf";
+
+            if (!isImage && !isPdf) continue;
+
+            const ext = file.name.split(".").pop();
+            const fileName = `${clientId}/${updateId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+            const { error: uploadError } = await adminClient.storage
+                .from("attachments")
+                .upload(fileName, file, {
+                    contentType: file.type,
+                    upsert: false,
+                });
+
+            if (uploadError) {
+                console.error("Upload error:", uploadError);
+                continue;
+            }
+
+            const { data: urlData } = adminClient.storage
+                .from("attachments")
+                .getPublicUrl(fileName);
+
+            await adminClient.from("attachments").insert({
+                update_id: updateId,
+                file_url: urlData.publicUrl,
+                file_name: file.name,
+                file_type: isImage ? "image" : "pdf",
+                file_size: file.size,
+            });
+        }
+    }
+
+    revalidatePath(`/admin/clientes/${clientId}`);
+    return { success: true };
+}
+
+/**
+ * Inline update - apenas título, conteúdo e categoria (sem files)
+ * Para autosave rápido durante edição inline
+ */
+export async function inlineUpdateAction(
+    updateId: string,
+    data: { title?: string; content?: string; category?: string }
+) {
+    const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return { error: "Não autorizado" };
+    }
+
+    // Verify admin role
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+    if (profile?.role !== "admin") {
+        return { error: "Apenas administradores podem editar" };
+    }
+
+    // Filter out undefined values (only update provided fields)
+    const updateData: any = {};
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.content !== undefined) updateData.content = data.content;
+    if (data.category !== undefined) updateData.category = data.category;
+
+    if (Object.keys(updateData).length === 0) {
+        return { error: "Nenhum campo para atualizar" };
+    }
+
+    const { error } = await supabase
+        .from("client_updates")
+        .update(updateData)
+        .eq("id", updateId);
+
+    if (error) {
+        return { error: error.message };
+    }
+
+    // Get client_id for revalidation
+    const { data: update } = await supabase
+        .from("client_updates")
+        .select("client_id")
+        .eq("id", updateId)
+        .single();
+
+    if (update) {
+        revalidatePath(`/admin/clientes/${update.client_id}`);
+    }
+
+    return { success: true };
+}
+
+/**
+ * Alterna o estado de "Gosto" de uma atualização (para o cliente)
+ */
+export async function toggleUpdateLikeAction(updateId: string) {
+    const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return { error: "Não autorizado" };
+    }
+
+    // Get current state
+    const { data: update } = await supabase
+        .from("client_updates")
+        .select("client_liked")
+        .eq("id", updateId)
+        .single();
+
+    if (!update) return { error: "Atualização não encontrada" };
+
+    const newState = !update.client_liked;
+
+    const { error } = await supabase
+        .from("client_updates")
+        .update({ client_liked: newState })
+        .eq("id", updateId);
+
+    if (error) {
+        return { error: "Erro ao atualizar estado" };
+    }
+
+    revalidatePath("/cliente/atualizacoes");
+    return { success: true, liked: newState };
+}
+
+/**
+ * Cria uma nova comparação antes/depois
+ */
+export async function createBeforeAfterComparison(formData: FormData) {
+    const supabase = await createClient();
+    const adminClient = createAdminClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return { error: "Não autorizado" };
+    }
+
+    const clientId = formData.get("client_id") as string;
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+    const beforeDate = formData.get("before_date") as string;
+    const afterDate = formData.get("after_date") as string;
+    const isFeatured = formData.get("is_featured") === "on";
+    const beforeImage = formData.get("before_image") as File;
+    const afterImage = formData.get("after_image") as File;
+
+    if (!beforeImage || !afterImage || beforeImage.size === 0 || afterImage.size === 0) {
+        return { error: "Ambas as imagens são obrigatórias" };
+    }
+
+    // Upload before image
+    const beforeExt = beforeImage.name.split(".").pop();
+    const beforeFileName = `${clientId}/before-after/${Date.now()}-before.${beforeExt}`;
+
+    const { error: beforeUploadError } = await adminClient.storage
+        .from("attachments")
+        .upload(beforeFileName, beforeImage, {
+            contentType: beforeImage.type,
+            upsert: false,
+        });
+
+    if (beforeUploadError) {
+        return { error: `Erro ao carregar imagem 'antes': ${beforeUploadError.message}` };
+    }
+
+    const { data: beforeUrlData } = adminClient.storage
+        .from("attachments")
+        .getPublicUrl(beforeFileName);
+
+    // Upload after image
+    const afterExt = afterImage.name.split(".").pop();
+    const afterFileName = `${clientId}/before-after/${Date.now()}-after.${afterExt}`;
+
+    const { error: afterUploadError } = await adminClient.storage
+        .from("attachments")
+        .upload(afterFileName, afterImage, {
+            contentType: afterImage.type,
+            upsert: false,
+        });
+
+    if (afterUploadError) {
+        return { error: `Erro ao carregar imagem 'depois': ${afterUploadError.message}` };
+    }
+
+    const { data: afterUrlData } = adminClient.storage
+        .from("attachments")
+        .getPublicUrl(afterFileName);
+
+    // If this is featured, remove featured from others
+    if (isFeatured) {
+        await adminClient
+            .from("before_after_comparisons")
+            .update({ is_featured: false })
+            .eq("client_id", clientId);
+    }
+
+    // Create comparison record
+    const { error: insertError } = await adminClient
+        .from("before_after_comparisons")
+        .insert({
+            client_id: clientId,
+            admin_id: user.id,
+            title: title || null,
+            description: description || null,
+            before_image_url: beforeUrlData.publicUrl,
+            before_date: beforeDate,
+            after_image_url: afterUrlData.publicUrl,
+            after_date: afterDate,
+            is_featured: isFeatured,
+        });
+
+    if (insertError) {
+        return { error: `Erro ao criar comparação: ${insertError.message}` };
+    }
+
+    // Create client update for evolution
+    const beforeDateFormatted = new Date(beforeDate).toLocaleDateString("pt-PT", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
+    const afterDateFormatted = new Date(afterDate).toLocaleDateString("pt-PT", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
+
+    const updateTitle = title || "Nova comparação de evolução";
+    const updateContent = `Adicionada nova comparação antes/depois do seu tratamento.\n\n**Período:** ${beforeDateFormatted} → ${afterDateFormatted}${description ? `\n\n**Observações:** ${description}` : ""}`;
+
+    const { data: update } = await adminClient
+        .from("client_updates")
+        .insert({
+            client_id: clientId,
+            admin_id: user.id,
+            title: updateTitle,
+            content: updateContent,
+            category: "evolucao",
+        })
+        .select("id")
+        .single();
+
+    // Add images as attachments to the update
+    if (update) {
+        await adminClient.from("attachments").insert([
+            {
+                update_id: update.id,
+                file_url: beforeUrlData.publicUrl,
+                file_name: `antes-${beforeDate}.${beforeExt}`,
+                file_type: "image",
+                file_size: beforeImage.size,
+            },
+            {
+                update_id: update.id,
+                file_url: afterUrlData.publicUrl,
+                file_name: `depois-${afterDate}.${afterExt}`,
+                file_type: "image",
+                file_size: afterImage.size,
+            },
+        ]);
+    }
+
+    revalidatePath(`/admin/clientes/${clientId}`);
+    revalidatePath("/cliente");
+    revalidatePath("/cliente/evolucao");
+    revalidatePath("/cliente/atualizacoes");
+    return { success: true };
+}
+
+/**
+ * Elimina uma comparação antes/depois
+ */
+export async function deleteBeforeAfterComparison(comparisonId: string) {
+    const supabase = await createClient();
+    const adminClient = createAdminClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return { error: "Não autorizado" };
+    }
+
+    // Get comparison to delete images
+    const { data: comparison } = await adminClient
+        .from("before_after_comparisons")
+        .select("client_id, before_image_url, after_image_url")
+        .eq("id", comparisonId)
+        .single();
+
+    if (!comparison) {
+        return { error: "Comparação não encontrada" };
+    }
+
+    // Delete images from storage
+    for (const imageUrl of [comparison.before_image_url, comparison.after_image_url]) {
+        try {
+            const url = new URL(imageUrl);
+            const pathParts = url.pathname.split("/storage/v1/object/public/attachments/");
+            if (pathParts[1]) {
+                await adminClient.storage.from("attachments").remove([pathParts[1]]);
+            }
+        } catch (e) {
+            console.error("Error deleting image:", e);
+        }
+    }
+
+    // Delete comparison record
+    const { error } = await adminClient
+        .from("before_after_comparisons")
+        .delete()
+        .eq("id", comparisonId);
+
+    if (error) {
+        return { error: `Erro ao eliminar: ${error.message}` };
+    }
+
+    revalidatePath(`/admin/clientes/${comparison.client_id}`);
+    revalidatePath("/cliente");
+    revalidatePath("/cliente/evolucao");
+    return { success: true };
+}
+
+/**
+ * Alterna o estado de destaque de uma comparação
+ */
+export async function toggleFeaturedComparison(comparisonId: string, clientId: string, featured: boolean) {
+    const adminClient = createAdminClient();
+
+    // If setting as featured, remove featured from others first
+    if (featured) {
+        await adminClient
+            .from("before_after_comparisons")
+            .update({ is_featured: false })
+            .eq("client_id", clientId);
+    }
+
+    const { error } = await adminClient
+        .from("before_after_comparisons")
+        .update({ is_featured: featured })
+        .eq("id", comparisonId);
+
+    if (error) {
+        return { error: `Erro ao atualizar: ${error.message}` };
+    }
+
+    revalidatePath(`/admin/clientes/${clientId}`);
+    revalidatePath("/cliente");
+    revalidatePath("/cliente/evolucao");
+    return { success: true };
 }

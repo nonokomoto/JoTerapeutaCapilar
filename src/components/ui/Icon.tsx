@@ -1,6 +1,7 @@
 import { LucideProps } from "lucide-react";
 import {
     ArrowLeft,
+    ArrowRight,
     ChevronRight,
     FileText,
     ImageIcon,
@@ -49,12 +50,16 @@ import {
     Share,
     Camera,
     Sparkles,
+    TrendingUp,
+    Lightbulb,
+    KeyRound,
 } from "lucide-react";
 import { forwardRef, ComponentType } from "react";
 
 // Map of all available icons
 const iconMap = {
     "arrow-left": ArrowLeft,
+    "arrow-right": ArrowRight,
     "chevron-right": ChevronRight,
     "chevron-left": ChevronLeft,
     "chevron-down": ChevronDown,
@@ -104,6 +109,9 @@ const iconMap = {
     share: Share,
     camera: Camera,
     sparkles: Sparkles,
+    "trending-up": TrendingUp,
+    lightbulb: Lightbulb,
+    key: KeyRound,
 } as const;
 
 export type IconName = keyof typeof iconMap;
@@ -150,6 +158,7 @@ Icon.displayName = "Icon";
 // Re-export individual icons for direct usage when needed
 export {
     ArrowLeft,
+    ArrowRight,
     ChevronRight,
     FileText,
     ImageIcon,
@@ -198,4 +207,7 @@ export {
     Share,
     Camera,
     Sparkles,
+    TrendingUp,
+    Lightbulb,
+    KeyRound,
 };

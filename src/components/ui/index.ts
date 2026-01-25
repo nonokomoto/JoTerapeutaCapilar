@@ -34,6 +34,8 @@ export type { TextAreaProps } from "./TextArea";
 
 export { ClientStatusBadge } from "./ClientStatusBadge";
 
+export { CategoryBadge } from "./CategoryBadge";
+
 export { Select } from "./Select";
 export type { SelectProps, SelectOption } from "./Select";
 
@@ -48,6 +50,12 @@ export type { ConfirmDialogProps } from "./ConfirmDialog";
 
 export { EmptyState } from "./EmptyState";
 export type { EmptyStateProps } from "./EmptyState";
+
+export { ImageGallery } from "./ImageGallery";
+
+export { DateGroupHeader } from "./DateGroupHeader";
+
+export { MarkdownContent } from "./MarkdownContent";
 
 // Layout Components
 export { PageHeader, SectionHeader } from "./PageHeader";

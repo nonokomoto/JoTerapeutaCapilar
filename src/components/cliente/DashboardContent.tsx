@@ -22,6 +22,7 @@ function ChevronRightIcon() {
     );
 }
 
+
 // Skeleton components
 function UpdatesSkeleton() {
     return (
@@ -102,7 +103,7 @@ export function TreatmentsSection({ initialUpdates, initialCount }: TreatmentsSe
                 <div className="cliente-treatments-grid">
                     {updates.map((update, index) => (
                         <Link
-                            href="/cliente/atualizacoes"
+                            href={`/cliente/atualizacoes/${update.id}`}
                             key={update.id}
                             className="cliente-feed-card"
                             style={{ animationDelay: `${index * 100}ms` }}
