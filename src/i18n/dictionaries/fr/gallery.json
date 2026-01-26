@@ -1,0 +1,15 @@
+{
+  "hero": {
+    "label": "Galerie",
+    "title": "Des résultats qui parlent d'eux-mêmes",
+    "subtitle": "Découvrez les transformations capillaires réalisées avec amour, dévouement et des produits 100% naturels."
+  },
+  "lightbox": {
+    "close": "Fermer",
+    "imageAlt": "Transformation capillaire"
+  },
+  "cta": {
+    "title": "Prête pour votre transformation ?",
+    "description": "Prenez rendez-vous et découvrez comment nous pouvons prendre soin de vos cheveux de manière naturelle et personnalisée."
+  }
+}

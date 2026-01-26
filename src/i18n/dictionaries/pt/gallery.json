@@ -1,0 +1,15 @@
+{
+  "hero": {
+    "label": "Galeria",
+    "title": "Resultados que falam por si",
+    "subtitle": "Descubra as transformações capilares realizadas com amor, dedicação e produtos 100% naturais."
+  },
+  "lightbox": {
+    "close": "Fechar",
+    "imageAlt": "Transformação capilar"
+  },
+  "cta": {
+    "title": "Pronta para a sua transformação?",
+    "description": "Marque a sua consulta e descubra como podemos cuidar do seu cabelo de forma natural e personalizada."
+  }
+}

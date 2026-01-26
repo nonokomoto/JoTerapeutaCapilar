@@ -1,0 +1,47 @@
+{
+  "hero": {
+    "label": "Bonjour",
+    "title": "Je m'appelle Josianne Gomes",
+    "paragraphs": [
+      "J'ai 30 ans, je suis mère de deux enfants et coiffeuse de profession. En 2019, après un grave accident, j'ai commencé à perdre beaucoup de cheveux. C'est alors que j'ai découvert la thérapie capillaire et décidé de me consacrer à ce domaine.",
+      "En 2020, j'ai obtenu mon diplôme de Thérapie Capillaire au Portugal et depuis, j'ai continué ma formation en phytoénergétique et aromathérapie, toujours dans le but d'offrir des traitements naturels et personnalisés.",
+      "Je crois que chaque chevelure est unique et mérite une attention particulière. C'est pourquoi j'utilise exclusivement des produits 100% naturels et biologiques, adaptés aux besoins spécifiques de chaque cliente."
+    ],
+    "quote": "Bienvenue à la thérapie par l'amour !"
+  },
+  "ingredients": {
+    "label": "Nature",
+    "title": "Ingrédients Principaux",
+    "description": "J'utilise des ingrédients 100% naturels et biologiques, soigneusement sélectionnés pour leurs propriétés thérapeutiques.",
+    "items": [
+      {
+        "name": "Lavande",
+        "description": "Apaise le cuir chevelu, réduit les pellicules et favorise une croissance capillaire saine."
+      },
+      {
+        "name": "Nigelle",
+        "description": "Riche en antioxydants, renforce les follicules et combat la chute des cheveux."
+      },
+      {
+        "name": "Arbre à Thé",
+        "description": "Propriétés antifongiques et antibactériennes qui purifient le cuir chevelu."
+      },
+      {
+        "name": "Menthe Poivrée",
+        "description": "Stimule la circulation sanguine et procure une sensation rafraîchissante."
+      },
+      {
+        "name": "Jojoba",
+        "description": "Hydrate en profondeur sans laisser de résidus, idéal pour tous types de cheveux."
+      },
+      {
+        "name": "Argile Verte",
+        "description": "Détoxifie et purifie, éliminant les impuretés et l'excès de sébum."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Prête à commencer votre parcours ?",
+    "description": "Prenez rendez-vous et découvrez comment nous pouvons prendre soin de vos cheveux de manière naturelle et personnalisée."
+  }
+}

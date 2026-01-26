@@ -1,0 +1,34 @@
+{
+  "hero": {
+    "label": "Blog",
+    "title": "Conseils et soins capillaires",
+    "subtitle": "Articles, recettes et conseils pour prendre soin de vos cheveux de manière naturelle et saine."
+  },
+  "filters": {
+    "all": "Tous",
+    "categories": {
+      "cuidados": "Soins",
+      "tratamentos": "Traitements",
+      "transicao": "Transition",
+      "receitas": "Recettes",
+      "saude": "Santé",
+      "produtos": "Produits"
+    }
+  },
+  "post": {
+    "readTime": "de lecture"
+  },
+  "article": {
+    "writtenBy": "Écrit par",
+    "authorBio": "Thérapeute Capillaire spécialisée en trichologie clinique et cheveux crépus et bouclés.",
+    "relatedPosts": "Articles connexes"
+  },
+  "error": {
+    "notFound": "Article non trouvé",
+    "notFoundMessage": "L'article que vous recherchez n'existe pas ou a été supprimé."
+  },
+  "cta": {
+    "title": "Vous souhaitez un traitement personnalisé ?",
+    "description": "Prenez rendez-vous et recevez un plan de soins adapté aux besoins de vos cheveux."
+  }
+}

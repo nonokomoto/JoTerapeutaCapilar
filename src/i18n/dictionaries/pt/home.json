@@ -1,0 +1,73 @@
+{
+  "hero": {
+    "label": "Josianne Gomes",
+    "title": "Honre o seu legado,\ncelebre a sua",
+    "titleAccent": "beleza",
+    "subtitle": "Terapeuta Capilar especializada em tricologia clínica e cabelos crespos e cacheados. Tratamentos personalizados com produtos 100% naturais.",
+    "scroll": "Scroll"
+  },
+  "features": {
+    "label": "Os Nossos Valores",
+    "title": "Compromisso com a qualidade e o seu bem-estar",
+    "items": [
+      {
+        "title": "Fórmulas Seguras",
+        "description": "Produtos 100% naturais e biológicos, cuidadosamente selecionados para garantir a máxima qualidade e eficácia nos tratamentos."
+      },
+      {
+        "title": "Resultados Visíveis",
+        "description": "Tratamentos personalizados com resultados comprovados, adaptados às necessidades específicas de cada tipo de cabelo."
+      },
+      {
+        "title": "Fontes Éticas",
+        "description": "Matérias-primas de origem sustentável, respeitando o ambiente e promovendo práticas de consumo consciente."
+      }
+    ]
+  },
+  "about": {
+    "label": "Sobre Mim",
+    "name": "Josianne Gomes",
+    "paragraphs": [
+      "Terapeuta Capilar especializada em tricologia clínica e cabelos crespos e cacheados. Com formação em Fitoenergética, Aromaterapia e colorimetria, dedico-me a proporcionar tratamentos personalizados que respeitam a natureza única de cada cabelo.",
+      "Em 2019, após um acidente grave, iniciei a minha jornada de cura através da terapia capilar. Esta experiência transformadora levou-me a partilhar este conhecimento com outras pessoas, ajudando-as a reconectar-se com as suas raízes e a celebrar a sua beleza natural.",
+      "Utilizo exclusivamente produtos 100% naturais e biológicos, cuidadosamente selecionados para nutrir e revitalizar o seu cabelo de forma saudável e sustentável."
+    ],
+    "quote": "Bem-vinda à terapia pelo amor!"
+  },
+  "gallery": {
+    "label": "Galeria",
+    "title": "Resultados que falam por si",
+    "images": [
+      { "alt": "Transformação capilar" },
+      { "alt": "Tratamento de cachos" },
+      { "alt": "Hidratação profunda" },
+      { "alt": "Definição de cachos" },
+      { "alt": "Resultado de tratamento" },
+      { "alt": "Cabelos saudáveis" }
+    ]
+  },
+  "blog": {
+    "label": "Blog",
+    "title": "Dicas de cuidados capilares",
+    "description": "Descubra artigos sobre cuidados capilares, dicas de tratamentos naturais, receitas caseiras e muito mais para manter o seu cabelo saudável e bonito."
+  },
+  "contact": {
+    "label": "Contacto",
+    "title": "Marque a sua consulta",
+    "description": "Estou disponível para responder às suas questões e agendar a sua consulta personalizada. Entre em contacto através dos meios abaixo.",
+    "phone": "Telefone",
+    "email": "Email",
+    "whatsapp": "WhatsApp",
+    "whatsappAction": "Enviar mensagem",
+    "form": {
+      "name": "Nome",
+      "namePlaceholder": "O seu nome",
+      "email": "Email",
+      "emailPlaceholder": "O seu email",
+      "subject": "Assunto",
+      "subjectPlaceholder": "Assunto da mensagem",
+      "message": "Mensagem",
+      "messagePlaceholder": "A sua mensagem"
+    }
+  }
+}

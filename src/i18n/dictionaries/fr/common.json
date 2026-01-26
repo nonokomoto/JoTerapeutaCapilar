@@ -1,0 +1,32 @@
+{
+  "nav": {
+    "about": "À propos",
+    "gallery": "Galerie",
+    "blog": "Blog",
+    "contact": "Contact",
+    "clientArea": "Espace Client"
+  },
+  "footer": {
+    "navigation": "Navigation",
+    "links": "Liens",
+    "socialMedia": "Réseaux Sociaux",
+    "copyright": "Tous droits réservés."
+  },
+  "logo": {
+    "subtitle": "THÉRAPEUTE CAPILLAIRE"
+  },
+  "languageSwitcher": {
+    "pt": "Português",
+    "fr": "Français"
+  },
+  "cta": {
+    "bookConsultation": "Prendre Rendez-vous",
+    "learnMore": "En Savoir Plus",
+    "contact": "Me Contacter",
+    "viewGallery": "Voir la Galerie Complète",
+    "viewPosts": "Voir les Articles",
+    "sendMessage": "Envoyer le Message",
+    "readMore": "Lire la suite",
+    "backToBlog": "Retour au Blog"
+  }
+}

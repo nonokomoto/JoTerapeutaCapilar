@@ -1,0 +1,32 @@
+{
+  "nav": {
+    "about": "Sobre",
+    "gallery": "Galeria",
+    "blog": "Blog",
+    "contact": "Contacto",
+    "clientArea": "Área de Cliente"
+  },
+  "footer": {
+    "navigation": "Navegação",
+    "links": "Ligações",
+    "socialMedia": "Redes Sociais",
+    "copyright": "Todos os direitos reservados."
+  },
+  "logo": {
+    "subtitle": "TERAPEUTA CAPILAR"
+  },
+  "languageSwitcher": {
+    "pt": "Português",
+    "fr": "Français"
+  },
+  "cta": {
+    "bookConsultation": "Marcar Consulta",
+    "learnMore": "Saber Mais",
+    "contact": "Entrar em Contacto",
+    "viewGallery": "Ver Galeria Completa",
+    "viewPosts": "Ver Publicações",
+    "sendMessage": "Enviar Mensagem",
+    "readMore": "Ler mais",
+    "backToBlog": "Voltar ao Blog"
+  }
+}

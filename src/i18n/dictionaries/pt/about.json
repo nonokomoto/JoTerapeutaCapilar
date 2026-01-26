@@ -1,0 +1,47 @@
+{
+  "hero": {
+    "label": "Olá",
+    "title": "Chamo-me Josianne Gomes",
+    "paragraphs": [
+      "Tenho 30 anos, sou mãe de dois filhos e cabeleireira de profissão. Em 2019, após um acidente grave, comecei a perder muito cabelo. Foi então que descobri a terapia capilar e decidi dedicar-me a esta área.",
+      "Em 2020, formei-me em Terapia Capilar em Portugal e desde então tenho continuado a minha formação em fitoenergética e aromaterapia, sempre com o objetivo de oferecer tratamentos naturais e personalizados.",
+      "Acredito que cada cabelo é único e merece um cuidado especial. Por isso, utilizo exclusivamente produtos 100% naturais e biológicos, adaptados às necessidades específicas de cada cliente."
+    ],
+    "quote": "Bem-vinda à terapia pelo amor!"
+  },
+  "ingredients": {
+    "label": "Natureza",
+    "title": "Ingredientes Principais",
+    "description": "Utilizo ingredientes 100% naturais e biológicos, cuidadosamente selecionados pelas suas propriedades terapêuticas.",
+    "items": [
+      {
+        "name": "Lavanda",
+        "description": "Acalma o couro cabeludo, reduz a caspa e promove o crescimento capilar saudável."
+      },
+      {
+        "name": "Nigela",
+        "description": "Rica em antioxidantes, fortalece os folículos e combate a queda de cabelo."
+      },
+      {
+        "name": "Árvore do Chá",
+        "description": "Propriedades antifúngicas e antibacterianas que purificam o couro cabeludo."
+      },
+      {
+        "name": "Menta-Pimenta",
+        "description": "Estimula a circulação sanguínea e proporciona uma sensação refrescante."
+      },
+      {
+        "name": "Jojoba",
+        "description": "Hidrata profundamente sem deixar resíduos, ideal para todos os tipos de cabelo."
+      },
+      {
+        "name": "Argila Verde",
+        "description": "Desintoxica e purifica, removendo impurezas e excesso de oleosidade."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Pronta para começar a sua jornada?",
+    "description": "Marque a sua consulta e descubra como podemos cuidar do seu cabelo de forma natural e personalizada."
+  }
+}

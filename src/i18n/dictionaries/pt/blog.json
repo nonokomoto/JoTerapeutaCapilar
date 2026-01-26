@@ -1,0 +1,34 @@
+{
+  "hero": {
+    "label": "Blog",
+    "title": "Dicas e cuidados capilares",
+    "subtitle": "Artigos, receitas e conselhos para cuidar do seu cabelo de forma natural e saudável."
+  },
+  "filters": {
+    "all": "Todos",
+    "categories": {
+      "cuidados": "Cuidados",
+      "tratamentos": "Tratamentos",
+      "transicao": "Transição",
+      "receitas": "Receitas",
+      "saude": "Saúde",
+      "produtos": "Produtos"
+    }
+  },
+  "post": {
+    "readTime": "de leitura"
+  },
+  "article": {
+    "writtenBy": "Escrito por",
+    "authorBio": "Terapeuta Capilar especializada em tricologia clínica e cabelos crespos e cacheados.",
+    "relatedPosts": "Artigos relacionados"
+  },
+  "error": {
+    "notFound": "Artigo não encontrado",
+    "notFoundMessage": "O artigo que procura não existe ou foi removido."
+  },
+  "cta": {
+    "title": "Quer um tratamento personalizado?",
+    "description": "Marque a sua consulta e receba um plano de cuidados adaptado às necessidades do seu cabelo."
+  }
+}

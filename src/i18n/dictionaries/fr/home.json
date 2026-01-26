@@ -1,0 +1,73 @@
+{
+  "hero": {
+    "label": "Josianne Gomes",
+    "title": "Honorez votre héritage,\ncélébrez votre",
+    "titleAccent": "beauté",
+    "subtitle": "Thérapeute Capillaire spécialisée en trichologie clinique et cheveux crépus et bouclés. Traitements personnalisés avec des produits 100% naturels.",
+    "scroll": "Défiler"
+  },
+  "features": {
+    "label": "Nos Valeurs",
+    "title": "Engagement envers la qualité et votre bien-être",
+    "items": [
+      {
+        "title": "Formules Sûres",
+        "description": "Produits 100% naturels et biologiques, soigneusement sélectionnés pour garantir la plus haute qualité et efficacité des traitements."
+      },
+      {
+        "title": "Résultats Visibles",
+        "description": "Traitements personnalisés avec des résultats prouvés, adaptés aux besoins spécifiques de chaque type de cheveux."
+      },
+      {
+        "title": "Sources Éthiques",
+        "description": "Matières premières d'origine durable, respectant l'environnement et promouvant des pratiques de consommation consciente."
+      }
+    ]
+  },
+  "about": {
+    "label": "À Propos de Moi",
+    "name": "Josianne Gomes",
+    "paragraphs": [
+      "Thérapeute Capillaire spécialisée en trichologie clinique et cheveux crépus et bouclés. Formée en Phytoénergétique, Aromathérapie et colorimétrie, je me consacre à fournir des traitements personnalisés qui respectent la nature unique de chaque chevelure.",
+      "En 2019, après un grave accident, j'ai commencé mon parcours de guérison à travers la thérapie capillaire. Cette expérience transformatrice m'a amenée à partager ces connaissances avec d'autres personnes, les aidant à se reconnecter avec leurs racines et à célébrer leur beauté naturelle.",
+      "J'utilise exclusivement des produits 100% naturels et biologiques, soigneusement sélectionnés pour nourrir et revitaliser vos cheveux de manière saine et durable."
+    ],
+    "quote": "Bienvenue à la thérapie par l'amour !"
+  },
+  "gallery": {
+    "label": "Galerie",
+    "title": "Des résultats qui parlent d'eux-mêmes",
+    "images": [
+      { "alt": "Transformation capillaire" },
+      { "alt": "Traitement des boucles" },
+      { "alt": "Hydratation profonde" },
+      { "alt": "Définition des boucles" },
+      { "alt": "Résultat de traitement" },
+      { "alt": "Cheveux sains" }
+    ]
+  },
+  "blog": {
+    "label": "Blog",
+    "title": "Conseils de soins capillaires",
+    "description": "Découvrez des articles sur les soins capillaires, des conseils de traitements naturels, des recettes maison et bien plus encore pour garder vos cheveux sains et beaux."
+  },
+  "contact": {
+    "label": "Contact",
+    "title": "Prenez votre rendez-vous",
+    "description": "Je suis disponible pour répondre à vos questions et planifier votre consultation personnalisée. Contactez-moi par les moyens ci-dessous.",
+    "phone": "Téléphone",
+    "email": "Email",
+    "whatsapp": "WhatsApp",
+    "whatsappAction": "Envoyer un message",
+    "form": {
+      "name": "Nom",
+      "namePlaceholder": "Votre nom",
+      "email": "Email",
+      "emailPlaceholder": "Votre email",
+      "subject": "Sujet",
+      "subjectPlaceholder": "Sujet du message",
+      "message": "Message",
+      "messagePlaceholder": "Votre message"
+    }
+  }
+}

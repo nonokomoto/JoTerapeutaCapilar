@@ -3,9 +3,10 @@
 interface LogoProps {
     className?: string;
     size?: "header" | "footer";
+    subtitle?: string;
 }
 
-export function Logo({ className = "", size = "header" }: LogoProps) {
+export function Logo({ className = "", size = "header", subtitle = "TERAPEUTA CAPILAR" }: LogoProps) {
     const height = size === "header" ? 70 : 50;
     const width = size === "header" ? 180 : 130;
 
@@ -43,7 +44,7 @@ export function Logo({ className = "", size = "header" }: LogoProps) {
                 letterSpacing="0.18em"
                 textAnchor="middle"
             >
-                TERAPEUTA CAPILAR
+                {subtitle}
             </text>
         </svg>
     );
