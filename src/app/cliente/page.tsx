@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { TreatmentsSection, NewsSection } from "@/components/cliente/DashboardContent";
+import { TreatmentsSection, NewsSection, NextAppointmentWidget, ClientJourneyStats } from "@/components/cliente";
 
 // Get time-based greeting
 function getGreeting() {
@@ -10,16 +10,6 @@ function getGreeting() {
 }
 
 // Icons
-function UpdatesIcon() {
-    return (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
-            <rect x="9" y="3" width="6" height="4" rx="1" />
-            <path d="M9 14l2 2 4-4" />
-        </svg>
-    );
-}
-
 function SparklesIcon() {
     return (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -28,6 +18,14 @@ function SparklesIcon() {
             <path d="M5 17l.5 1.5L7 19l-1.5.5L5 21l-.5-1.5L3 19l1.5-.5L5 17z" />
         </svg>
     );
+}
+
+// Calculate months as client
+function calculateMonthsAsClient(createdAt: string): number {
+    const created = new Date(createdAt);
+    const now = new Date();
+    const diffMonths = (now.getFullYear() - created.getFullYear()) * 12 + (now.getMonth() - created.getMonth());
+    return Math.max(0, diffMonths);
 }
 
 export default async function ClienteDashboard() {
@@ -42,14 +40,14 @@ export default async function ClienteDashboard() {
 
     const { data: profile } = await adminClient
         .from("profiles")
-        .select("name, avatar_url")
+        .select("name, avatar_url, next_appointment_date, created_at")
         .eq("id", user?.id)
         .single();
 
     // Get initial updates for SSR
     const { data: recentUpdates, count: updatesCount } = await supabase
         .from("client_updates")
-        .select("id, title, created_at", { count: "exact" })
+        .select("id, title, created_at, client_read_at", { count: "exact" })
         .eq("client_id", user?.id)
         // Filter out automated appointment updates
         .not("title", "ilike", "%Agendamento%")
@@ -58,6 +56,24 @@ export default async function ClienteDashboard() {
         .not("title", "ilike", "%Visita realizada%")
         .order("created_at", { ascending: false })
         .limit(3);
+
+    // Count unread updates
+    const { count: unreadCount } = await supabase
+        .from("client_updates")
+        .select("id", { count: "exact", head: true })
+        .eq("client_id", user?.id)
+        .is("client_read_at", null)
+        .not("title", "ilike", "%Agendamento%")
+        .not("title", "ilike", "%Consulta Realizada%")
+        .not("title", "ilike", "%Marcação%")
+        .not("title", "ilike", "%Visita realizada%");
+
+    // Count total visits (completed appointments)
+    const { count: totalVisits } = await supabase
+        .from("appointments")
+        .select("id", { count: "exact", head: true })
+        .eq("client_id", user?.id)
+        .eq("completed", true);
 
     // Get initial posts for SSR
     const { data: recentPosts } = await supabase
@@ -70,6 +86,7 @@ export default async function ClienteDashboard() {
     const firstName = profile?.name?.split(" ")[0] || "Cliente";
     const greeting = getGreeting();
     const initials = profile?.name?.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "CL";
+    const monthsAsClient = profile?.created_at ? calculateMonthsAsClient(profile.created_at) : 0;
 
     return (
         <div className="cliente-dash-container">
@@ -88,7 +105,7 @@ export default async function ClienteDashboard() {
                                 {initials}
                             </div>
                         )}
-                        <div className="absolute bottom-1 right-0 w-6 h-6 bg-white rounded-full flex items-center justify-center text-rose-gold shadow-sm border-2 border-primary lg:bottom-0">
+                        <div className="absolute bottom-1 right-0 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm border-2 border-white lg:bottom-0" style={{ color: 'var(--color-rose-gold)' }}>
                             <SparklesIcon />
                         </div>
                     </div>
@@ -96,16 +113,21 @@ export default async function ClienteDashboard() {
                     <div className="flex flex-col">
                         <p className="cliente-hero-greeting">{greeting},</p>
                         <h1 className="cliente-hero-name">{firstName}!</h1>
-
-                        <div className="cliente-status-pill self-center lg:self-start">
-                            <UpdatesIcon />
-                            <span>A sua saúde capilar em dia</span>
-                        </div>
                     </div>
                 </div>
             </div>
 
             <div className="cliente-dashboard-content">
+                {/* Next Appointment Widget */}
+                <NextAppointmentWidget nextAppointmentDate={profile?.next_appointment_date || null} />
+
+                {/* Client Journey Stats */}
+                <ClientJourneyStats
+                    memberSince={profile?.created_at || new Date().toISOString()}
+                    totalUpdates={updatesCount || 0}
+                    totalVisits={totalVisits || 0}
+                />
+
                 {/* Treatments Section - Now reactive with TanStack Query */}
                 <TreatmentsSection
                     initialUpdates={recentUpdates || []}

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, Input, TextArea, PageHeader, Icon } from "@/components/ui";
-import { ImagePicker } from "@/components/ImagePicker";
+import { Button, PageHeader, Icon } from "@/components/ui";
+import { PostEditor } from "@/components/features/PostEditor";
 import { updatePostAction, deletePostAction } from "../actions";
 
 interface Post {
@@ -25,16 +25,23 @@ export function EditPostForm({ post }: EditPostFormProps) {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [imageUrl, setImageUrl] = useState<string | null>(post.image_url);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-    async function handleSubmit(formData: FormData, publish: boolean) {
+    // Form data refs with initial values
+    const titleRef = useRef<string>(post.title);
+    const contentRef = useRef<string>(post.content);
+    const coverImageRef = useRef<string | null>(post.image_url);
+
+    async function handleSubmit(publish: boolean) {
         setIsLoading(true);
         setError(null);
 
+        const formData = new FormData();
         formData.set("id", post.id);
-        if (imageUrl) {
-            formData.set("image_url", imageUrl);
+        formData.set("title", titleRef.current);
+        formData.set("content", contentRef.current);
+        if (coverImageRef.current) {
+            formData.set("image_url", coverImageRef.current);
         }
         formData.set("published", publish.toString());
 
@@ -81,132 +88,101 @@ export function EditPostForm({ post }: EditPostFormProps) {
                 backLabel="Publicações"
             />
 
-            {/* Form */}
+            {/* Editor with Preview */}
             <div className="post-form-card">
-                <form
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        const formData = new FormData(e.currentTarget);
-                        const submitType = (e.nativeEvent as SubmitEvent).submitter?.getAttribute("data-action");
-                        handleSubmit(formData, submitType === "publish");
-                    }}
-                    className="post-form-fields"
-                >
-                    {/* Image Picker */}
-                    <ImagePicker value={imageUrl} onChange={setImageUrl} />
+                <PostEditor
+                    defaultTitle={post.title}
+                    defaultContent={post.content}
+                    defaultCoverImage={post.image_url}
+                    onTitleChange={(title) => { titleRef.current = title; }}
+                    onContentChange={(content) => { contentRef.current = content; }}
+                    onCoverImageChange={(url) => { coverImageRef.current = url; }}
+                />
 
-                    {/* Title */}
-                    <div className="post-form-field">
-                        <Input
-                            label="Título"
-                            name="title"
-                            defaultValue={post.title}
-                            placeholder="Ex: Dicas de cuidado diário"
-                            required
-                        />
+                {/* Error */}
+                {error && (
+                    <div className="image-picker-error" style={{ marginTop: "var(--spacing-4)" }}>
+                        {error}
                     </div>
+                )}
 
-                    {/* Content */}
-                    <div className="post-form-field">
-                        <TextArea
-                            label="Conteúdo"
-                            name="content"
-                            rows={8}
-                            defaultValue={post.content}
-                            placeholder="Escreva o conteúdo da publicação..."
-                            required
-                        />
-                    </div>
-
-                    {/* Error */}
-                    {error && (
-                        <div className="image-picker-error">
-                            {error}
+                {/* Actions */}
+                <div className="post-form-actions" style={{ marginTop: "var(--spacing-6)" }}>
+                    {/* Delete Button */}
+                    {!showDeleteConfirm ? (
+                        <button
+                            type="button"
+                            onClick={() => setShowDeleteConfirm(true)}
+                            className="post-delete-btn"
+                        >
+                            <Icon name="trash" size="sm" />
+                        </button>
+                    ) : (
+                        <div className="post-delete-confirm">
+                            <span className="post-delete-text">Eliminar?</span>
+                            <button
+                                type="button"
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                                className="post-delete-yes"
+                            >
+                                {isDeleting ? "..." : "Sim"}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="post-delete-no"
+                            >
+                                Não
+                            </button>
                         </div>
                     )}
 
-                    {/* Actions */}
-                    <div className="post-form-actions">
-                        {/* Delete Button */}
-                        {!showDeleteConfirm ? (
-                            <button
-                                type="button"
-                                onClick={() => setShowDeleteConfirm(true)}
-                                className="post-delete-btn"
+                    <div className="flex-1" />
+
+                    <Link href="/admin/posts">
+                        <Button variant="ghost" type="button">
+                            Cancelar
+                        </Button>
+                    </Link>
+
+                    {post.published ? (
+                        <>
+                            <Button
+                                variant="secondary"
+                                isLoading={isLoading}
+                                onClick={() => handleSubmit(false)}
                             >
-                                <Icon name="trash" size="sm" />
-                            </button>
-                        ) : (
-                            <div className="post-delete-confirm">
-                                <span className="post-delete-text">Eliminar?</span>
-                                <button
-                                    type="button"
-                                    onClick={handleDelete}
-                                    disabled={isDeleting}
-                                    className="post-delete-yes"
-                                >
-                                    {isDeleting ? "..." : "Sim"}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowDeleteConfirm(false)}
-                                    className="post-delete-no"
-                                >
-                                    Não
-                                </button>
-                            </div>
-                        )}
-
-                        <div className="flex-1" />
-
-                        <Link href="/admin/posts">
-                            <Button variant="ghost" type="button">
-                                Cancelar
+                                Despublicar
                             </Button>
-                        </Link>
-
-                        {post.published ? (
-                            <>
-                                <Button
-                                    type="submit"
-                                    variant="secondary"
-                                    isLoading={isLoading}
-                                    data-action="draft"
-                                >
-                                    Despublicar
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    isLoading={isLoading}
-                                    data-action="publish"
-                                >
-                                    <Icon name="save" size="sm" />
-                                    Guardar
-                                </Button>
-                            </>
-                        ) : (
-                            <>
-                                <Button
-                                    type="submit"
-                                    variant="secondary"
-                                    isLoading={isLoading}
-                                    data-action="draft"
-                                >
-                                    <Icon name="save" size="sm" />
-                                    Guardar Rascunho
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    isLoading={isLoading}
-                                    data-action="publish"
-                                >
-                                    <Icon name="send" size="sm" />
-                                    Publicar
-                                </Button>
-                            </>
-                        )}
-                    </div>
-                </form>
+                            <Button
+                                isLoading={isLoading}
+                                onClick={() => handleSubmit(true)}
+                            >
+                                <Icon name="save" size="sm" />
+                                Guardar
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button
+                                variant="secondary"
+                                isLoading={isLoading}
+                                onClick={() => handleSubmit(false)}
+                            >
+                                <Icon name="save" size="sm" />
+                                Guardar Rascunho
+                            </Button>
+                            <Button
+                                isLoading={isLoading}
+                                onClick={() => handleSubmit(true)}
+                            >
+                                <Icon name="send" size="sm" />
+                                Publicar
+                            </Button>
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );

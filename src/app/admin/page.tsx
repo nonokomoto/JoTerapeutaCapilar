@@ -70,11 +70,24 @@ export default async function AdminDashboard() {
     const firstName = profile?.name?.split(" ")[0] || "Jo";
     const greeting = getGreeting();
 
+    // Today's date range
+    const now = new Date();
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date(now);
+    endOfToday.setHours(23, 59, 59, 999);
+
     // Get initial stats for SSR (hydration)
-    const [clientsResult, updatesResult, postsResult] = await Promise.all([
+    const [clientsResult, updatesResult, postsResult, todayAppointmentsResult] = await Promise.all([
         adminClient.from("profiles").select("*", { count: "exact", head: true }).eq("role", "client"),
         adminClient.from("client_updates").select("*", { count: "exact", head: true }),
         adminClient.from("posts").select("*", { count: "exact", head: true }).eq("published", true),
+        adminClient.from("appointments")
+            .select("id, appointment_date, appointment_type, client_id, profiles!appointments_client_id_fkey(name, avatar_url)")
+            .gte("appointment_date", startOfToday.toISOString())
+            .lte("appointment_date", endOfToday.toISOString())
+            .eq("completed", false)
+            .order("appointment_date", { ascending: true }),
     ]);
 
     const initialStats = {
@@ -82,6 +95,8 @@ export default async function AdminDashboard() {
         postsCount: postsResult.count || 0,
         updatesCount: updatesResult.count || 0,
     };
+
+    const todayAppointments = todayAppointmentsResult.data || [];
 
     // Get initial recent clients for SSR
     const { data: recentClients } = await adminClient
@@ -135,6 +150,43 @@ export default async function AdminDashboard() {
 
             {/* Stats Section - Now reactive with TanStack Query */}
             <AdminStats initialStats={initialStats} />
+
+            {/* Today's Appointments */}
+            {todayAppointments.length > 0 && (
+                <section className="admin-section admin-today-section">
+                    <div className="admin-section-header-row">
+                        <h2 className="section-label">
+                            <span className="admin-today-badge">Hoje</span>
+                            Marcações
+                        </h2>
+                    </div>
+                    <div className="admin-today-list">
+                        {todayAppointments.map((apt: any) => (
+                            <Link
+                                key={apt.id}
+                                href={`/admin/clientes/${apt.client_id}`}
+                                className="admin-today-item"
+                            >
+                                <div className="admin-today-time">
+                                    {new Date(apt.appointment_date).toLocaleTimeString("pt-PT", {
+                                        hour: "2-digit",
+                                        minute: "2-digit"
+                                    })}
+                                </div>
+                                <div className="admin-today-info">
+                                    <span className="admin-today-name">{apt.profiles?.name}</span>
+                                    {apt.appointment_type && (
+                                        <span className="admin-today-type">{apt.appointment_type}</span>
+                                    )}
+                                </div>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="admin-today-arrow">
+                                    <path d="M9 18l6-6-6-6" />
+                                </svg>
+                            </Link>
+                        ))}
+                    </div>
+                </section>
+            )}
 
             {/* Content Grid - Two columns on large screens */}
             <div className="admin-content-grid lg:!grid-cols-[1.5fr_1fr]">
@@ -193,7 +245,7 @@ export default async function AdminDashboard() {
                             </div>
                             <div className="admin-quick-action-info">
                                 <span className="admin-quick-action-label">
-                                    Criar Post
+                                    Nova Publicação
                                 </span>
                             </div>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">

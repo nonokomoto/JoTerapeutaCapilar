@@ -2,8 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getUpdateReactions } from "@/app/cliente/actions";
 import { DateGroupHeader } from "@/components/ui";
 import { groupUpdatesByMonth, getUniqueYears, filterUpdates } from "@/lib/utils/grouping";
-import { UpdateFilters } from "@/components/features/UpdateFilters";
 import { UpdateCard } from "@/components/features/UpdateCard";
+import { UnreadBanner, UpdateFiltersChips, MonthNavigation } from "@/components/cliente";
 import { UpdateCategory } from "@/types/database";
 
 // Icons
@@ -79,13 +79,19 @@ export default async function ClienteAtualizacoes({
     // Group filtered updates by month
     const groupedUpdates = filteredUpdates.length > 0 ? groupUpdatesByMonth(filteredUpdates) : [];
 
+    // Get month labels for navigation
+    const monthLabels = groupedUpdates.map(([label]) => label);
+
     // Count for display
     const totalCount = updates?.length || 0;
     const filteredCount = filteredUpdates.length;
-    const hasFilters = params.categoria || params.ano;
 
-    // Calculate unread count
-    const unreadCount = filteredUpdates.filter(u => !u.client_read_at).length;
+    // Calculate unread count (from all updates, not filtered)
+    const unreadCount = updates?.filter(u => !u.client_read_at).length || 0;
+    const filteredUnreadCount = filteredUpdates.filter(u => !u.client_read_at).length;
+
+    // Find first unread update ID
+    const firstUnreadUpdate = filteredUpdates.find(u => !u.client_read_at);
 
     // Fetch reactions for all updates
     const updateReactionsMap = new Map();
@@ -101,35 +107,42 @@ export default async function ClienteAtualizacoes({
             {/* Page Header */}
             <div className="cliente-page-header">
                 <h1 className="cliente-page-title">As minhas atualizações</h1>
-                {unreadCount > 0 ? (
-                    <p className="cliente-page-subtitle">
-                        {unreadCount} {unreadCount === 1 ? 'nova atualização' : 'novas atualizações'}
-                    </p>
-                ) : (
-                    <p className="cliente-page-subtitle">Acompanhe a sua evolução capilar</p>
-                )}
+                <p className="cliente-page-subtitle">Acompanhe a sua evolução capilar</p>
             </div>
 
-            {/* Filters */}
-            {totalCount > 0 && (
-                <UpdateFilters
-                    categories={uniqueCategories as UpdateCategory[]}
-                    years={uniqueYears}
+            {/* Unread Banner - Only show if there are unread updates */}
+            {unreadCount > 0 && (
+                <UnreadBanner
+                    unreadCount={filteredUnreadCount}
+                    firstUnreadId={firstUnreadUpdate?.id}
                 />
             )}
 
-            {/* Results count */}
-            {hasFilters && totalCount > 0 && (
-                <div className="filter-results-count">
-                    A mostrar {filteredCount} de {totalCount} {filteredCount === 1 ? 'atualização' : 'atualizações'}
-                </div>
+            {/* Filters as Chips */}
+            {totalCount > 0 && (
+                <UpdateFiltersChips
+                    categories={uniqueCategories as UpdateCategory[]}
+                    years={uniqueYears}
+                    totalCount={totalCount}
+                    filteredCount={filteredCount}
+                />
+            )}
+
+            {/* Month Navigation - Only show if more than 1 month */}
+            {monthLabels.length > 1 && (
+                <MonthNavigation months={monthLabels} />
             )}
 
             {/* Updates List - Grouped by Month */}
             {groupedUpdates.length > 0 ? (
                 <div>
                     {groupedUpdates.map(([monthLabel, monthUpdates]) => (
-                        <div key={monthLabel}>
+                        <div
+                            key={monthLabel}
+                            id={`month-${monthLabel.replace(/\s+/g, "-")}`}
+                            data-month={monthLabel}
+                            className="month-section"
+                        >
                             <DateGroupHeader label={monthLabel} count={monthUpdates.length} />
 
                             <div className="date-group-updates">

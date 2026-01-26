@@ -1,4 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import {
+    NextAppointmentCard,
+    UpcomingAppointmentsList,
+    ContactCard,
+    AppointmentHistory
+} from "@/components/cliente";
 
 // Icons
 function CalendarIcon() {
@@ -12,26 +18,6 @@ function CalendarIcon() {
     );
 }
 
-function CheckIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="20 6 9 17 4 12" />
-        </svg>
-    );
-}
-
-function ClockIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-        </svg>
-    );
-}
-
-// Type labels in PT-PT
-
-
 export default async function ClienteMarcacoes() {
     const supabase = await createClient();
 
@@ -41,25 +27,36 @@ export default async function ClienteMarcacoes() {
 
     const { data: appointments } = await supabase
         .from("appointments")
-        .select("id, appointment_date, appointment_type, notes, completed")
+        .select("id, appointment_date, appointment_type, notes, completed, created_at, updated_at, client_id")
         .eq("client_id", user?.id)
-        .order("appointment_date", { ascending: false });
+        .order("appointment_date", { ascending: true });
 
     // Separate upcoming and past appointments
     const now = new Date();
+
     const upcoming = appointments?.filter(
         apt => new Date(apt.appointment_date) >= now && !apt.completed
     ) || [];
+
     const past = appointments?.filter(
         apt => new Date(apt.appointment_date) < now || apt.completed
     ) || [];
 
-    // Check if appointment is within next 7 days
-    const isWithinSevenDays = (dateStr: string) => {
-        const date = new Date(dateStr);
-        const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-        return date >= now && date <= sevenDaysFromNow;
-    };
+    // Sort upcoming by date ascending (nearest first)
+    upcoming.sort((a, b) =>
+        new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime()
+    );
+
+    // Sort past by date descending (most recent first)
+    past.sort((a, b) =>
+        new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime()
+    );
+
+    // Get the next appointment (first upcoming)
+    const nextAppointment = upcoming[0] || null;
+
+    // Get other upcoming appointments (excluding the next one)
+    const otherUpcoming = upcoming.slice(1);
 
     return (
         <div className="cliente-dashboard-content cliente-page-container">
@@ -69,124 +66,24 @@ export default async function ClienteMarcacoes() {
                 <p className="cliente-page-subtitle">Consulte as suas consultas e tratamentos</p>
             </div>
 
-            {/* Upcoming Appointments */}
-            {upcoming.length > 0 && (
-                <section className="cliente-section">
-                    <h2 className="cliente-section-title">Próximas marcações</h2>
-                    <div className="cliente-updates-list">
-                        {upcoming.map((appointment, index) => {
-                            const date = new Date(appointment.appointment_date);
-                            const isSoon = isWithinSevenDays(appointment.appointment_date);
-
-                            return (
-                                <article
-                                    key={appointment.id}
-                                    className={`cliente-update-card ${isSoon ? "cliente-appointment-soon" : ""}`}
-                                    style={{ animationDelay: `${index * 80}ms` }}
-                                >
-                                    <div className="cliente-update-header">
-                                        <div className={`cliente-update-icon ${isSoon ? "cliente-icon-success" : ""}`}>
-                                            <CalendarIcon />
-                                        </div>
-                                        <div className="cliente-update-meta">
-                                            <h3 className="cliente-update-title">
-                                                {appointment.appointment_type || "Consulta"}
-                                            </h3>
-                                            <p className="cliente-update-date">
-                                                {date.toLocaleDateString("pt-PT", {
-                                                    weekday: "long",
-                                                    day: "numeric",
-                                                    month: "long",
-                                                    year: "numeric",
-                                                })}
-                                                {" às "}
-                                                {date.toLocaleTimeString("pt-PT", {
-                                                    hour: "2-digit",
-                                                    minute: "2-digit",
-                                                })}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="cliente-appointment-status">
-                                        <span className="cliente-status-badge cliente-status-pending">
-                                            <ClockIcon />
-                                            Agendada
-                                        </span>
-                                        {isSoon && (
-                                            <span className="cliente-status-badge cliente-status-soon">
-                                                Em breve
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {appointment.notes && (
-                                        <div className="cliente-update-content cliente-appointment-notes">
-                                            {appointment.notes}
-                                        </div>
-                                    )}
-                                </article>
-                            );
-                        })}
-                    </div>
-                </section>
+            {/* Next Appointment - Highlighted */}
+            {nextAppointment && (
+                <NextAppointmentCard appointment={nextAppointment} />
             )}
 
-            {/* Past Appointments */}
+            {/* Contact Card - Show when there are appointments */}
+            {(nextAppointment || past.length > 0) && (
+                <ContactCard />
+            )}
+
+            {/* Other Upcoming Appointments */}
+            {otherUpcoming.length > 0 && (
+                <UpcomingAppointmentsList appointments={otherUpcoming} />
+            )}
+
+            {/* Past Appointments History */}
             {past.length > 0 && (
-                <section className="cliente-section">
-                    <h2 className="cliente-section-title">Histórico</h2>
-                    <div className="cliente-updates-list">
-                        {past.map((appointment, index) => {
-                            const date = new Date(appointment.appointment_date);
-
-                            return (
-                                <article
-                                    key={appointment.id}
-                                    className="cliente-update-card cliente-appointment-past"
-                                    style={{ animationDelay: `${index * 80}ms` }}
-                                >
-                                    <div className="cliente-update-header">
-                                        <div className="cliente-update-icon cliente-icon-muted">
-                                            <CalendarIcon />
-                                        </div>
-                                        <div className="cliente-update-meta">
-                                            <h3 className="cliente-update-title">
-                                                {appointment.appointment_type || "Consulta"}
-                                            </h3>
-                                            <p className="cliente-update-date">
-                                                {date.toLocaleDateString("pt-PT", {
-                                                    day: "numeric",
-                                                    month: "long",
-                                                    year: "numeric",
-                                                })}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="cliente-appointment-status">
-                                        {appointment.completed ? (
-                                            <span className="cliente-status-badge cliente-status-completed">
-                                                <CheckIcon />
-                                                Realizada
-                                            </span>
-                                        ) : (
-                                            <span className="cliente-status-badge cliente-status-missed">
-                                                Não realizada
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {appointment.notes && (
-                                        <div className="cliente-update-content cliente-appointment-notes">
-                                            {appointment.notes}
-                                        </div>
-                                    )}
-                                </article>
-                            );
-                        })}
-                    </div>
-                </section>
+                <AppointmentHistory appointments={past} />
             )}
 
             {/* Empty State */}
@@ -199,6 +96,11 @@ export default async function ClienteMarcacoes() {
                     <p className="cliente-empty-text">
                         Ainda não tem marcações registadas
                     </p>
+
+                    {/* Contact even without appointments */}
+                    <div className="mt-6">
+                        <ContactCard />
+                    </div>
                 </div>
             )}
         </div>

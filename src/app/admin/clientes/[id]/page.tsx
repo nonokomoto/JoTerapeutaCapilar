@@ -140,40 +140,47 @@ export default async function ClienteDetalhe({
                 </div>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-6">
-                {/* Sidebar */}
-                <div className="lg:col-span-1 space-y-4">
-                    {/* Appointments Card */}
-                    <AppointmentsSection
-                        clientId={client.id}
-                        clientData={{
-                            first_visit_date: client.first_visit_date,
-                            last_appointment_date: client.last_appointment_date,
-                            next_appointment_date: client.next_appointment_date
-                        }}
-                    />
+            <div className="client-detail-grid">
+                {/* Sidebar - Widgets */}
+                <aside className="client-sidebar">
+                    <h3 className="client-sidebar-title">
+                        <Icon name="info" size={16} />
+                        Informações
+                    </h3>
 
-                    {/* Notes Card */}
-                    <div className="client-notes-card">
-                        <div className="client-notes-header">
-                            <div className="client-notes-icon">
-                                <Icon name="file-text" size={16} />
+                    <div className="client-sidebar-widgets">
+                        {/* Appointments Card */}
+                        <AppointmentsSection
+                            clientId={client.id}
+                            clientData={{
+                                first_visit_date: client.first_visit_date,
+                                last_appointment_date: client.last_appointment_date,
+                                next_appointment_date: client.next_appointment_date
+                            }}
+                        />
+
+                        {/* Notes Card */}
+                        <div className="client-notes-card">
+                            <div className="client-notes-header">
+                                <div className="client-notes-icon">
+                                    <Icon name="file-text" size={16} />
+                                </div>
+                                <h3 className="client-notes-title">Notas Privadas</h3>
                             </div>
-                            <h3 className="client-notes-title">Notas Privadas</h3>
+                            {client.notes ? (
+                                <p className="client-notes-content">{client.notes}</p>
+                            ) : (
+                                <p className="client-notes-empty">Sem notas adicionadas</p>
+                            )}
                         </div>
-                        {client.notes ? (
-                            <p className="client-notes-content">{client.notes}</p>
-                        ) : (
-                            <p className="client-notes-empty">Sem notas adicionadas</p>
-                        )}
+
+                        {/* Reset Password */}
+                        <ResetPasswordButton clientId={client.id} clientEmail={client.email} />
                     </div>
+                </aside>
 
-                    {/* Reset Password */}
-                    <ResetPasswordButton clientId={client.id} clientEmail={client.email} />
-                </div>
-
-                {/* Updates Section */}
-                <div className="lg:col-span-2">
+                {/* Updates Section - Feed */}
+                <main className="client-feed">
                     {/* Updates List */}
                     <div className="client-updates-section">
                         {/* Section Header with Add Buttons */}
@@ -212,9 +219,8 @@ export default async function ClienteDetalhe({
                             />
                         )}
                     </div>
-                </div>
+                </main>
             </div>
         </div>
-
     );
 }

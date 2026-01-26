@@ -15,19 +15,19 @@ function UsersIcon() {
     );
 }
 
-function TreatmentIcon() {
-    return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-        </svg>
-    );
-}
-
 function PostsIcon() {
     return (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
+    );
+}
+
+function UpdatesIcon() {
+    return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
     );
 }
@@ -94,13 +94,13 @@ export function AdminStats({ initialStats }: AdminStatsProps) {
                 accentColor="rose"
             />
             <StatCard
-                label="Em tratamento"
-                value={displayStats?.clientsCount || 0}
-                icon={<TreatmentIcon />}
+                label="Atualizações Enviadas"
+                value={displayStats?.updatesCount || 0}
+                icon={<UpdatesIcon />}
                 accentColor="sage"
             />
             <StatCard
-                label="Posts publicados"
+                label="Posts Publicados"
                 value={displayStats?.postsCount || 0}
                 icon={<PostsIcon />}
                 accentColor="terracotta"

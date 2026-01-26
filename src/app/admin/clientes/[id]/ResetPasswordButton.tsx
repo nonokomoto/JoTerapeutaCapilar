@@ -29,10 +29,30 @@ export function ResetPasswordButton({ clientId, clientEmail }: Props) {
         setIsLoading(false);
     }
 
-    function copyToClipboard(text: string, field: string) {
-        navigator.clipboard.writeText(text);
-        setCopied(field);
-        setTimeout(() => setCopied(null), 2000);
+    async function copyToClipboard(text: string, field: string) {
+        try {
+            // Modern clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                // Fallback for older browsers or non-secure contexts
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                textArea.style.top = "-9999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                document.execCommand("copy");
+                document.body.removeChild(textArea);
+            }
+            setCopied(field);
+            setTimeout(() => setCopied(null), 2000);
+        } catch (err) {
+            console.error("Failed to copy:", err);
+            setError("Não foi possível copiar. Selecione o texto manualmente.");
+        }
     }
 
     function handleClose() {
