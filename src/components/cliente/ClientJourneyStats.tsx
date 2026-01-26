@@ -14,6 +14,11 @@ function getTimeSince(date: string): string {
     const diffTime = now.getTime() - memberDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
+    // Handle today
+    if (diffDays === 0) {
+        return "hoje";
+    }
+
     if (diffDays < 30) {
         return `${diffDays} dia${diffDays !== 1 ? 's' : ''}`;
     }
