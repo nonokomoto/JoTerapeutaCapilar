@@ -46,7 +46,6 @@ export function HomePageClient({ lang, dict }: HomePageClientProps) {
                 <section className="landing-hero">
                     <div className="landing-container">
                         <div className="landing-hero-content">
-                            <p className="landing-hero-label">{home.hero.label}</p>
                             <h1 className="landing-hero-title">
                                 {home.hero.title.split("\n").map((line, i) => (
                                     <span key={i}>

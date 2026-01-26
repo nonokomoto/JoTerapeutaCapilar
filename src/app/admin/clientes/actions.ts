@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendUpdateNotification } from "@/lib/email";
+import { sendUpdateNotification, sendAppointmentConfirmation } from "@/lib/email";
 import { UpdateCategory } from "@/types/database";
 
 // Create a new client (admin creates the account)
@@ -465,6 +465,7 @@ export async function createAppointment(data: {
     completed?: boolean;
 }) {
     const supabase = await createClient();
+    const adminClient = createAdminClient();
 
     const { data: appointment, error } = await supabase
         .from("appointments")
@@ -485,6 +486,32 @@ export async function createAppointment(data: {
             notes: data.notes || null,
             completed: data.completed || false,
         });
+    }
+
+    // Enviar email de confirmação se marcação for futura e cliente tem notificações ativas
+    if (appointment && !data.completed) {
+        try {
+            const { data: client } = await adminClient
+                .from("profiles")
+                .select("email, name, email_notifications")
+                .eq("id", data.client_id)
+                .single();
+
+            if (client && client.email_notifications) {
+                const appointmentsUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://app.joterapeutacapilar.com'}/cliente/marcacoes`;
+
+                await sendAppointmentConfirmation({
+                    clientEmail: client.email,
+                    clientName: client.name,
+                    appointmentDate: data.appointment_date,
+                    appointmentType: data.appointment_type || "Tratamento",
+                    notes: data.notes,
+                    appointmentsUrl,
+                });
+            }
+        } catch (emailError) {
+            console.error("Failed to send appointment confirmation email:", emailError);
+        }
     }
 
     // Atualizar campos do profile automaticamente
